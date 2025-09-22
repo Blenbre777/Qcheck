@@ -1,9 +1,12 @@
-import {Component} from '@angular/core';
+import express from 'express';
 
-@Component({
-  selector: 'app-root',
-  template: `
-    Welcome to Angular!
-  `,
-})
-export class App {}
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello Qcheck!');
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
