@@ -1,0 +1,17 @@
+n\java\com\qcheck\qcheck\QcheckApplication.java
+n\java\com\qcheck\qcheck\service\DatabaseConnectionService.java
+n\resources\application.properties
+t\java\com\qcheck\qcheck\QcheckApplicationTests.java
+dex.html
+in.server.ts
+in.ts
+rver.ts
+yles.scss
+p\app.config.server.ts
+p\app.config.ts
+p\app.html
+p\app.routes.server.ts
+p\app.routes.ts
+p\app.scss
+p\app.spec.ts
+p\app.ts

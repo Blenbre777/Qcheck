@@ -1,0 +1,46 @@
+# =============================================================================
+# 코드리뷰 설정 파일
+# =============================================================================
+# 이 파일은 extract-code.sh 스크립트에서 사용하는 설정값들을 정의합니다.
+# 프로젝트에 맞게 수정하여 사용하세요.
+# =============================================================================
+
+# 리뷰 대상 디렉토리 (공백으로 구분)
+# 백엔드와 프론트엔드 소스 디렉토리를 지정합니다.
+TARGET_DIRS="../back/src ../front/src"
+
+# 제외할 패턴 (공백으로 구분)
+# 이 패턴에 매칭되는 파일/디렉토리는 코드리뷰에서 제외됩니다.
+EXCLUDE_PATTERNS="node_modules target .git *.min.js *.map build dist coverage .nyc_output logs tmp temp"
+
+# 포함할 파일 확장자 (공백으로 구분)
+# 이 확장자들만 코드리뷰 대상에 포함됩니다.
+INCLUDE_EXTENSIONS="java ts js html scss css xml properties json yaml yml"
+
+# 최대 파일 크기 (KB 단위)
+# 이 크기를 초과하는 파일은 건너뜁니다. (Claude 토큰 제한 고려)
+MAX_FILE_SIZE=102400
+
+# 출력 디렉토리
+# 추출된 코드와 프롬프트가 저장될 디렉토리입니다.
+OUTPUT_DIR="review-output"
+
+# =============================================================================
+# 추가 설정 (향후 확장용)
+# =============================================================================
+
+# 프로젝트 정보
+PROJECT_NAME="Qcheck"
+PROJECT_DESCRIPTION="질문 체크 시스템"
+
+# 백엔드 기술 스택
+BACKEND_STACK="Java 17, Spring Boot 3.x, PostgreSQL, JPA/Hibernate"
+
+# 프론트엔드 기술 스택
+FRONTEND_STACK="Angular 20, TypeScript, SCSS"
+
+# 코드리뷰 중점 사항 (우선순위별)
+REVIEW_PRIORITIES="security performance maintainability architecture testing"
+
+# 특별 체크 항목
+SPECIAL_CHECKS="sql-injection xss n-plus-one-query memory-leak null-safety"

@@ -1,0 +1,926 @@
+# ?꾨줈?앺듃 ?뺣낫
+- **?꾨줈?앺듃紐?*: Qcheck (吏덈Ц 泥댄겕 ?쒖뒪??
+- **諛깆뿏??*: Java 17, Spring Boot 3.x, PostgreSQL, JPA/Hibernate
+- **?꾨줎?몄뿏??*: Angular 20, TypeScript, SCSS
+- **?꾪궎?띿쿂**: RESTful API, SPA (Single Page Application)
+
+# 肄붾뱶由щ럭 ?붿껌
+
+?ㅼ쓬 肄붾뱶??????꾨Ц?곸씠怨??곸꽭??肄붾뱶由щ럭瑜??섑뻾?댁＜?몄슂.
+
+## [紐⑺몴] 由щ럭 愿??
+
+### 1. **肄붾뱶 ?덉쭏 (Code Quality)**
+- 媛?낆꽦: 蹂?섎챸, 硫붿꽌?쒕챸??紐낇솗??
+- ?좎?蹂댁닔?? 肄붾뱶 援ъ“, 紐⑤뱢??
+- ?ъ궗?⑹꽦: 以묐났 肄붾뱶 ?쒓굅, 怨듯넻 湲곕뒫 異붿텧
+- ?쇨??? 肄붾뵫 而⑤깽??以??
+
+### 2. **?깅뒫 理쒖쟻??(Performance)**
+- 鍮꾪슚?⑥쟻???뚭퀬由ъ쬁?대굹 濡쒖쭅
+- 硫붾え由??ъ슜 理쒖쟻??
+- ?곗씠?곕쿋?댁뒪 荑쇰━ 理쒖쟻??(N+1 臾몄젣, ?몃뜳???쒖슜)
+- 遺덊븘?뷀븳 ?곗궛 ?쒓굅
+
+### 3. **蹂댁븞 (Security)**
+- SQL ?몄젥?? XSS ????痍⑥빟??
+- ?낅젰媛?寃利?諛?sanitization
+- 沅뚰븳 泥섎━ 諛??몄쬆/?멸?
+- 誘쇨컧 ?뺣낫 ?몄텧 諛⑹?
+
+### 4. **?꾪궎?띿쿂 諛??ㅺ퀎 (Architecture & Design)**
+- Spring Boot 踰좎뒪???꾨옓?곗뒪 ?곸슜
+- Angular ?꾪궎?띿쿂 ?⑦꽩 以??
+- ?섏〈??二쇱엯 諛?IoC ?쒖슜
+- 怨꾩링 遺꾨━ (Controller, Service, Repository)
+- ?붿옄???⑦꽩 ?곸슜
+
+### 5. **?덉쇅 泥섎━ 諛??덉젙??(Error Handling & Reliability)**
+- ?덉쇅 泥섎━ ?꾨왂
+- null 泥댄겕 諛?諛⑹뼱???꾨줈洹몃옒諛?
+- 寃쎄퀎 議곌굔 泥섎━
+- 由ъ냼??愿由?(Connection, Stream ??
+
+### 6. **?뚯뒪??諛??덉쭏 蹂댁쬆 (Testing & Quality Assurance)**
+- ?⑥쐞 ?뚯뒪???묒꽦 媛?μ꽦
+- ?듯빀 ?뚯뒪??怨좊젮?ы빆
+- ?뚯뒪??而ㅻ쾭由ъ? 媛쒖꽑 諛⑹븞
+- Mock 媛앹껜 ?쒖슜
+
+### 7. **臾몄꽌??諛?二쇱꽍 (Documentation)**
+- JavaDoc/TSDoc ?묒꽦
+- 蹂듭옟??濡쒖쭅??????ㅻ챸
+- API 臾몄꽌???꾩슂??
+
+## [?듦퀎] 肄붾뱶 ?듦퀎
+- **珥??뚯씪 ??*: 17媛?
+- **珥??쇱씤 ??*: 701以?
+
+## [?뚯씪] ?뚯씪 紐⑸줉
+`n\java\com\qcheck\qcheck\QcheckApplication.java
+n\java\com\qcheck\qcheck\service\DatabaseConnectionService.java
+n\resources\application.properties
+t\java\com\qcheck\qcheck\QcheckApplicationTests.java
+dex.html
+in.server.ts
+in.ts
+rver.ts
+yles.scss
+p\app.config.server.ts
+p\app.config.ts
+p\app.html
+p\app.routes.server.ts
+p\app.routes.ts
+p\app.scss
+p\app.spec.ts
+p\app.ts
+`$([Environment]::NewLine)
+## [CODE] 肄붾뱶 ?댁슜
+`$([Environment]::NewLine)=== n\java\com\qcheck\qcheck\QcheckApplication.java ===
+package com.qcheck.qcheck;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class QcheckApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(QcheckApplication.class, args);
+	}
+
+}
+
+
+=== n\java\com\qcheck\qcheck\service\DatabaseConnectionService.java ===
+package com.qcheck.qcheck.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * PostgreSQL 데이터베이스 연결 상태를 확인하고 관리하는 서비스 클래스
+ *
+ * 주요 기능:
+ * 1. 데이터베이스 연결 상태 테스트
+ * 2. Spring Boot 애플리케이션 시작 시 자동으로 DB 연결 확인
+ * 3. 연결 실패 시 상세한 문제 해결 가이드 제공
+ * 4. 실시간 로그를 통한 연결 상태 모니터링
+ *
+ * 사용 시나리오:
+ * - 개발 환경에서 DB 설정이 올바른지 확인
+ * - 운영 환경 배포 시 DB 연결 상태 점검
+ * - 시스템 헬스체크의 일부로 활용
+ *
+ * @author Qcheck Team
+ * @since 1.0.0
+ */
+@Slf4j    // Lombok 어노테이션: 자동으로 log 변수를 생성하여 로깅 기능 제공
+@Service  // Spring 어노테이션: 이 클래스를 비즈니스 로직을 담당하는 서비스 빈으로 등록
+public class DatabaseConnectionService {
+
+    /**
+     * 데이터베이스 연결을 위한 DataSource 객체
+     *
+     * DataSource란?
+     * - 데이터베이스 연결 풀(Connection Pool)을 관리하는 객체
+     * - application.properties의 DB 설정 정보를 기반으로 Spring에서 자동 생성
+     * - 실제 DB 연결, 해제, 재사용을 효율적으로 관리
+     *
+     * @Autowired: Spring의 의존성 주입 어노테이션
+     * - Spring 컨테이너가 자동으로 적절한 DataSource 빈을 찾아서 주입
+     * - 개발자가 직접 객체를 생성할 필요 없음
+     */
+    @Autowired
+    private DataSource dataSource;
+
+    /**
+     * PostgreSQL 데이터베이스 연결 상태를 테스트하는 메서드
+     *
+     * 수행 작업:
+     * 1. DataSource에서 Connection 객체 획득
+     * 2. 연결 상태 확인 (null 체크, 연결 열림 상태 확인)
+     * 3. 간단한 SQL 쿼리 실행으로 실제 통신 테스트
+     * 4. DB 버전, 현재 시간 등 기본 정보 수집
+     * 5. 모든 리소스 자동 해제 (try-with-resources 구문 사용)
+     *
+     * @return boolean
+     *         - true: DB 연결 및 쿼리 실행 성공
+     *         - false: 연결 실패 또는 쿼리 실행 실패
+     *
+     * @throws 없음 (모든 예외는 내부에서 처리하고 로그로 기록)
+     */
+    public boolean testConnection() {
+        // try-with-resources 구문: 자동으로 리소스(Connection) 해제 보장
+        // connection 변수는 블록이 끝나면 자동으로 close() 호출됨
+        try (Connection connection = dataSource.getConnection()) {
+            log.info("=== PostgreSQL DB 연결 테스트 시작 ===");
+
+            // 1단계: 기본 연결 상태 확인
+            // - connection이 null이 아닌지 확인
+            // - 연결이 닫혀있지 않은지 확인 (isClosed() == false)
+            if (connection != null && !connection.isClosed()) {
+                log.info("✅ DB 연결 성공!");
+
+                // 2단계: 실제 쿼리 실행으로 통신 테스트
+                // PostgreSQL에서 동작하는 간단한 테스트 쿼리
+                // - SELECT 1: 단순한 상수값 반환 (DB 응답 테스트)
+                // - CURRENT_TIMESTAMP: 현재 시간 (DB 시간 설정 확인)
+                // - version(): PostgreSQL 버전 정보 (DB 종류와 버전 확인)
+                String testQuery = "SELECT 1 as test_value, CURRENT_TIMESTAMP as current_time, version() as db_version";
+
+                // PreparedStatement와 ResultSet도 자동 리소스 해제
+                try (PreparedStatement stmt = connection.prepareStatement(testQuery);
+                     ResultSet rs = stmt.executeQuery()) {
+
+                    // 쿼리 결과 확인 및 데이터 추출
+                    if (rs.next()) {
+                        // 각 컬럼별로 데이터 추출
+                        int testValue = rs.getInt("test_value");         // 1이 나와야 정상
+                        String currentTime = rs.getString("current_time"); // DB 서버의 현재 시간
+                        String dbVersion = rs.getString("db_version");     // PostgreSQL 버전 정보
+
+                        // 성공 로그와 함께 추출한 정보 출력
+                        log.info("✅ 테스트 쿼리 실행 성공!");
+                        log.info("   - 테스트 값: {}", testValue);
+                        log.info("   - 현재 시간: {}", currentTime);
+                        log.info("   - DB 버전: {}", dbVersion);
+
+                        return true; // 모든 테스트 통과
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            // SQL 예외 발생 시 상세한 에러 정보 로깅
+            // SQLException의 주요 정보:
+            // - getMessage(): 사람이 읽을 수 있는 에러 메시지
+            // - getErrorCode(): DB 벤더 specific 에러 코드 (PostgreSQL 고유)
+            // - getSQLState(): SQL 표준 에러 상태 코드 (SQLSTATE)
+            log.error("❌ DB 연결 실패: {}", e.getMessage());
+            log.error("   - 에러 코드: {}", e.getErrorCode());
+            log.error("   - SQL State: {}", e.getSQLState());
+            return false; // 연결 실패
+        }
+
+        // 여기까지 도달하면 연결은 되었지만 쿼리 실행에 실패한 경우
+        log.error("❌ DB 연결 테스트 실패");
+        return false;
+    }
+
+    /**
+     * Spring Boot 애플리케이션이 완전히 시작된 후 자동으로 실행되는 메서드
+     *
+     * @EventListener(ApplicationReadyEvent.class) 어노테이션:
+     * - Spring Boot의 이벤트 리스너 어노테이션
+     * - ApplicationReadyEvent: 애플리케이션이 완전히 준비되었을 때 발생하는 이벤트
+     * - 모든 빈 초기화, 설정 로드, 서버 시작이 완료된 후에 실행됨
+     *
+     * 실행 시점:
+     * 1. Spring 컨텍스트 로드 완료
+     * 2. 모든 @Component, @Service, @Repository 빈 생성 완료
+     * 3. application.properties 설정 적용 완료
+     * 4. 내장 웹서버(Tomcat) 시작 완료
+     * 5. 이 메서드 실행 ← 여기서 DB 연결 테스트!
+     *
+     * 장점:
+     * - 애플리케이션 시작과 동시에 DB 연결 상태 확인
+     * - 문제 발생 시 즉시 로그로 알림
+     * - 수동으로 테스트할 필요 없음
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        // 애플리케이션 시작 완료 알림
+        log.info("🚀 Spring Boot 애플리케이션 시작 완료 - DB 연결 테스트 실행");
+
+        // 실제 DB 연결 테스트 메서드 호출
+        boolean connectionResult = testConnection();
+
+        // 테스트 결과에 따른 로그 분기 처리
+        if (connectionResult) {
+            // 성공 시: 긍정적인 메시지로 시스템 정상 동작 확인
+            log.info("🎉 DB 연결 테스트 완료 - 모든 시스템이 정상적으로 작동 중입니다!");
+        } else {
+            // 실패 시: 개발자가 문제를 해결할 수 있는 체크리스트 제공
+            log.warn("⚠️  DB 연결 실패 - 데이터베이스 설정을 확인해주세요.");
+            log.warn("   📝 확인사항:");
+            log.warn("      1. PostgreSQL 서버가 실행 중인지 확인");           // 가장 기본적인 문제
+            log.warn("      2. application.properties의 DB 설정 확인");      // 설정 파일 검토
+            log.warn("      3. 데이터베이스 '{}' 존재 여부 확인", getDbNameFromProperties()); // DB 스키마 존재 확인
+            log.warn("      4. 사용자 권한 확인");                          // 접근 권한 문제
+
+            // 추가로 확인할 수 있는 사항들:
+            // - 방화벽 설정
+            // - 네트워크 연결
+            // - PostgreSQL 포트 (기본 5432) 사용 가능 여부
+            // - 사용자명/비밀번호 정확성
+        }
+
+        // 테스트 완료 구분선
+        log.info("=== PostgreSQL DB 연결 테스트 완료 ===");
+    }
+
+    /**
+     * application.properties에서 데이터베이스 이름을 추출하는 헬퍼 메서드
+     *
+     * 현재 구현:
+     * - 단순히 하드코딩된 "qcheck" 값을 반환
+     * - 실제로는 @Value 어노테이션을 사용하여 동적으로 값을 가져올 수 있음
+     *
+     * 개선 가능한 방법:
+     * @Value("${app.db.name}")
+     * private String dbName;
+     *
+     * 용도:
+     * - 에러 로그에서 어떤 데이터베이스에 연결을 시도했는지 명시
+     * - 디버깅 시 설정값 확인 용이
+     *
+     * @return String 데이터베이스 이름 (현재는 "qcheck" 고정값)
+     */
+    private String getDbNameFromProperties() {
+        // application.properties에서 DB 이름 추출 (간단한 방법)
+        return "qcheck"; // 기본값
+    }
+}
+
+=== n\resources\application.properties ===
+# 서버 포트
+server.port=8081
+
+# ===========================================
+# 설정 변수 (여기서 값을 수정하세요)
+# ===========================================
+app.server.port=8081
+app.db.host=localhost
+app.db.port=5432
+app.db.name=qcheck
+app.db.username=postgres
+app.db.password=test
+
+# ===========================================
+# 서버 설정
+# ===========================================
+server.port=${app.server.port}
+
+# ===========================================
+
+# DB 연결 (PostgreSQL)
++  # ===========================================
+spring.datasource.url=jdbc:postgresql://${app.db.host}:${app.db.port}/${app.db.name}
+spring.datasource.username=${app.db.username}
+spring.datasource.password=${app.db.password}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA 옵션
+# ===========================================
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+# ===========================================
+
+
+=== t\java\com\qcheck\qcheck\QcheckApplicationTests.java ===
+package com.qcheck.qcheck;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class QcheckApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
+
+=== dex.html ===
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Front</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+
+=== in.server.ts ===
+import { BootstrapContext, bootstrapApplication } from '@angular/platform-browser';
+import { App } from './app/app';
+import { config } from './app/app.config.server';
+
+const bootstrap = (context: BootstrapContext) =>
+    bootstrapApplication(App, config, context);
+
+export default bootstrap;
+
+
+=== in.ts ===
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { App } from './app/app';
+
+bootstrapApplication(App, appConfig)
+  .catch((err) => console.error(err));
+
+
+=== rver.ts ===
+import {
+  AngularNodeAppEngine,
+  createNodeRequestHandler,
+  isMainModule,
+  writeResponseToNodeResponse,
+} from '@angular/ssr/node';
+import express from 'express';
+import { join } from 'node:path';
+
+const browserDistFolder = join(import.meta.dirname, '../browser');
+
+const app = express();
+const angularApp = new AngularNodeAppEngine();
+
+/**
+ * Example Express Rest API endpoints can be defined here.
+ * Uncomment and define endpoints as necessary.
+ *
+ * Example:
+ * ```ts
+ * app.get('/api/{*splat}', (req, res) => {
+ *   // Handle API request
+ * });
+ * ```
+ */
+
+/**
+ * Serve static files from /browser
+ */
+app.use(
+  express.static(browserDistFolder, {
+    maxAge: '1y',
+    index: false,
+    redirect: false,
+  }),
+);
+
+/**
+ * Handle all other requests by rendering the Angular application.
+ */
+app.use((req, res, next) => {
+  angularApp
+    .handle(req)
+    .then((response) =>
+      response ? writeResponseToNodeResponse(response, res) : next(),
+    )
+    .catch(next);
+});
+
+/**
+ * Start the server if this module is the main entry point.
+ * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
+ */
+if (isMainModule(import.meta.url)) {
+  const port = process.env['PORT'] || 4000;
+  app.listen(port, (error) => {
+    if (error) {
+      throw error;
+    }
+
+    console.log(`Node Express server listening on http://localhost:${port}`);
+  });
+}
+
+/**
+ * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
+ */
+export const reqHandler = createNodeRequestHandler(app);
+
+
+=== yles.scss ===
+/* You can add global styles to this file, and also import other style files */
+
+
+=== p\app.config.server.ts ===
+import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
+import { provideServerRendering, withRoutes } from '@angular/ssr';
+import { appConfig } from './app.config';
+import { serverRoutes } from './app.routes.server';
+
+const serverConfig: ApplicationConfig = {
+  providers: [
+    provideServerRendering(withRoutes(serverRoutes))
+  ]
+};
+
+export const config = mergeApplicationConfig(appConfig, serverConfig);
+
+
+=== p\app.config.ts ===
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes), provideClientHydration(withEventReplay())
+  ]
+};
+
+
+=== p\app.html ===
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * The content below * * * * * * * * * * * -->
+<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->
+<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
+<!-- * * * * * * * to get started with your project! * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+
+<style>
+  :host {
+    --bright-blue: oklch(51.01% 0.274 263.83);
+    --electric-violet: oklch(53.18% 0.28 296.97);
+    --french-violet: oklch(47.66% 0.246 305.88);
+    --vivid-pink: oklch(69.02% 0.277 332.77);
+    --hot-red: oklch(61.42% 0.238 15.34);
+    --orange-red: oklch(63.32% 0.24 31.68);
+
+    --gray-900: oklch(19.37% 0.006 300.98);
+    --gray-700: oklch(36.98% 0.014 302.71);
+    --gray-400: oklch(70.9% 0.015 304.04);
+
+    --red-to-pink-to-purple-vertical-gradient: linear-gradient(
+      180deg,
+      var(--orange-red) 0%,
+      var(--vivid-pink) 50%,
+      var(--electric-violet) 100%
+    );
+
+    --red-to-pink-to-purple-horizontal-gradient: linear-gradient(
+      90deg,
+      var(--orange-red) 0%,
+      var(--vivid-pink) 50%,
+      var(--electric-violet) 100%
+    );
+
+    --pill-accent: var(--bright-blue);
+
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol";
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1 {
+    font-size: 3.125rem;
+    color: var(--gray-900);
+    font-weight: 500;
+    line-height: 100%;
+    letter-spacing: -0.125rem;
+    margin: 0;
+    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol";
+  }
+
+  p {
+    margin: 0;
+    color: var(--gray-700);
+  }
+
+  main {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: inherit;
+    position: relative;
+  }
+
+  .angular-logo {
+    max-width: 9.2rem;
+  }
+
+  .content {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 3rem;
+  }
+
+  .content h1 {
+    margin-top: 1.75rem;
+  }
+
+  .content p {
+    margin-top: 1.5rem;
+  }
+
+  .divider {
+    width: 1px;
+    background: var(--red-to-pink-to-purple-vertical-gradient);
+    margin-inline: 0.5rem;
+  }
+
+  .pill-group {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    --pill-accent: var(--bright-blue);
+    background: color-mix(in srgb, var(--pill-accent) 5%, transparent);
+    color: var(--pill-accent);
+    padding-inline: 0.75rem;
+    padding-block: 0.375rem;
+    border-radius: 2.75rem;
+    border: 0;
+    transition: background 0.3s ease;
+    font-family: var(--inter-font);
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.4rem;
+    letter-spacing: -0.00875rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .pill:hover {
+    background: color-mix(in srgb, var(--pill-accent) 15%, transparent);
+  }
+
+  .pill-group .pill:nth-child(6n + 1) {
+    --pill-accent: var(--bright-blue);
+  }
+  .pill-group .pill:nth-child(6n + 2) {
+    --pill-accent: var(--electric-violet);
+  }
+  .pill-group .pill:nth-child(6n + 3) {
+    --pill-accent: var(--french-violet);
+  }
+
+  .pill-group .pill:nth-child(6n + 4),
+  .pill-group .pill:nth-child(6n + 5),
+  .pill-group .pill:nth-child(6n + 6) {
+    --pill-accent: var(--hot-red);
+  }
+
+  .pill-group svg {
+    margin-inline-start: 0.25rem;
+  }
+
+  .social-links {
+    display: flex;
+    align-items: center;
+    gap: 0.73rem;
+    margin-top: 1.5rem;
+  }
+
+  .social-links path {
+    transition: fill 0.3s ease;
+    fill: var(--gray-400);
+  }
+
+  .social-links a:hover svg path {
+    fill: var(--gray-900);
+  }
+
+  @media screen and (max-width: 650px) {
+    .content {
+      flex-direction: column;
+      width: max-content;
+    }
+
+    .divider {
+      height: 1px;
+      width: 100%;
+      background: var(--red-to-pink-to-purple-horizontal-gradient);
+      margin-block: 1.5rem;
+    }
+  }
+</style>
+
+<main class="main">
+  <div class="content">
+    <div class="left-side">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 982 239"
+        fill="none"
+        class="angular-logo"
+      >
+        <g clip-path="url(#a)">
+          <path
+            fill="url(#b)"
+            d="M388.676 191.625h30.849L363.31 31.828h-35.758l-56.215 159.797h30.848l13.174-39.356h60.061l13.256 39.356Zm-65.461-62.675 21.602-64.311h1.227l21.602 64.311h-44.431Zm126.831-7.527v70.202h-28.23V71.839h27.002v20.374h1.392c2.782-6.71 7.2-12.028 13.255-15.956 6.056-3.927 13.584-5.89 22.503-5.89 8.264 0 15.465 1.8 21.684 5.318 6.137 3.518 10.964 8.673 14.319 15.382 3.437 6.71 5.074 14.81 4.992 24.383v76.175h-28.23v-71.92c0-8.019-2.046-14.237-6.219-18.819-4.173-4.5-9.819-6.791-17.102-6.791-4.91 0-9.328 1.063-13.174 3.272-3.846 2.128-6.792 5.237-9.001 9.328-2.046 4.009-3.191 8.918-3.191 14.728ZM589.233 239c-10.147 0-18.82-1.391-26.103-4.091-7.282-2.7-13.092-6.382-17.511-10.964-4.418-4.582-7.528-9.655-9.164-15.219l25.448-6.136c1.145 2.372 2.782 4.663 4.991 6.954 2.209 2.291 5.155 4.255 8.837 5.81 3.683 1.554 8.428 2.291 14.074 2.291 8.019 0 14.647-1.964 19.884-5.81 5.237-3.845 7.856-10.227 7.856-19.064v-22.665h-1.391c-1.473 2.946-3.601 5.892-6.383 9.001-2.782 3.109-6.464 5.645-10.965 7.691-4.582 2.046-10.228 3.109-17.101 3.109-9.165 0-17.511-2.209-25.039-6.545-7.446-4.337-13.42-10.883-17.757-19.474-4.418-8.673-6.628-19.473-6.628-32.565 0-13.091 2.21-24.301 6.628-33.383 4.419-9.082 10.311-15.955 17.839-20.7 7.528-4.746 15.874-7.037 25.039-7.037 7.037 0 12.846 1.145 17.347 3.518 4.582 2.373 8.182 5.236 10.883 8.51 2.7 3.272 4.746 6.382 6.137 9.327h1.554v-19.8h27.821v121.749c0 10.228-2.454 18.737-7.364 25.447-4.91 6.709-11.538 11.7-20.048 15.055-8.509 3.355-18.165 4.991-28.884 4.991Zm.245-71.266c5.974 0 11.047-1.473 15.302-4.337 4.173-2.945 7.446-7.118 9.573-12.519 2.21-5.482 3.274-12.027 3.274-19.637 0-7.609-1.064-14.155-3.274-19.8-2.127-5.646-5.318-10.064-9.491-13.255-4.174-3.11-9.329-4.746-15.384-4.746s-11.537 1.636-15.792 4.91c-4.173 3.272-7.365 7.772-9.492 13.418-2.128 5.727-3.191 12.191-3.191 19.392 0 7.2 1.063 13.745 3.273 19.228 2.127 5.482 5.318 9.736 9.573 12.764 4.174 3.027 9.41 4.582 15.629 4.582Zm141.56-26.51V71.839h28.23v119.786h-27.412v-21.273h-1.227c-2.7 6.709-7.119 12.191-13.338 16.446-6.137 4.255-13.747 6.382-22.748 6.382-7.855 0-14.81-1.718-20.783-5.237-5.974-3.518-10.72-8.591-14.075-15.382-3.355-6.709-5.073-14.891-5.073-24.464V71.839h28.312v71.921c0 7.609 2.046 13.664 6.219 18.083 4.173 4.5 9.655 6.709 16.365 6.709 4.173 0 8.183-.982 12.111-3.028 3.927-2.045 7.118-5.072 9.655-9.082 2.537-4.091 3.764-9.164 3.764-15.218Zm65.707-109.395v159.796h-28.23V31.828h28.23Zm44.841 162.169c-7.61 0-14.402-1.391-20.457-4.091-6.055-2.7-10.883-6.791-14.32-12.109-3.518-5.319-5.237-11.946-5.237-19.801 0-6.791 1.228-12.355 3.765-16.773 2.536-4.419 5.891-7.937 10.228-10.637 4.337-2.618 9.164-4.664 14.647-6.055 5.4-1.391 11.046-2.373 16.856-3.027 7.037-.737 12.683-1.391 17.102-1.964 4.337-.573 7.528-1.555 9.574-2.782 1.963-1.309 3.027-3.273 3.027-5.973v-.491c0-5.891-1.718-10.391-5.237-13.664-3.518-3.191-8.51-4.828-15.056-4.828-6.955 0-12.356 1.473-16.447 4.5-4.009 3.028-6.71 6.546-8.183 10.719l-26.348-3.764c2.046-7.282 5.483-13.336 10.31-18.328 4.746-4.909 10.638-8.59 17.511-11.045 6.955-2.455 14.565-3.682 22.912-3.682 5.809 0 11.537.654 17.265 2.045s10.965 3.6 15.711 6.71c4.746 3.109 8.51 7.282 11.455 12.6 2.864 5.318 4.337 11.946 4.337 19.883v80.184h-27.166v-16.446h-.9c-1.719 3.355-4.092 6.464-7.201 9.328-3.109 2.864-6.955 5.237-11.619 6.955-4.828 1.718-10.229 2.536-16.529 2.536Zm7.364-20.701c5.646 0 10.556-1.145 14.729-3.354 4.173-2.291 7.364-5.237 9.655-9.001 2.292-3.763 3.355-7.854 3.355-12.273v-14.155c-.9.737-2.373 1.391-4.5 2.046-2.128.654-4.419 1.145-7.037 1.636-2.619.491-5.155.9-7.692 1.227-2.537.328-4.746.655-6.628.901-4.173.572-8.019 1.472-11.292 2.781-3.355 1.31-5.973 3.11-7.855 5.401-1.964 2.291-2.864 5.318-2.864 8.918 0 5.237 1.882 9.164 5.728 11.782 3.682 2.782 8.51 4.091 14.401 4.091Zm64.643 18.328V71.839h27.412v19.965h1.227c2.21-6.955 5.974-12.274 11.292-16.038 5.319-3.763 11.456-5.645 18.329-5.645 1.555 0 3.355.082 5.237.163 1.964.164 3.601.328 4.91.573v25.938c-1.227-.41-3.109-.819-5.646-1.146a58.814 58.814 0 0 0-7.446-.49c-5.155 0-9.738 1.145-13.829 3.354-4.091 2.209-7.282 5.236-9.655 9.164-2.373 3.927-3.519 8.427-3.519 13.5v70.448h-28.312ZM222.077 39.192l-8.019 125.923L137.387 0l84.69 39.192Zm-53.105 162.825-57.933 33.056-57.934-33.056 11.783-28.556h92.301l11.783 28.556ZM111.039 62.675l30.357 73.803H80.681l30.358-73.803ZM7.937 165.115 0 39.192 84.69 0 7.937 165.115Z"
+          />
+          <path
+            fill="url(#c)"
+            d="M388.676 191.625h30.849L363.31 31.828h-35.758l-56.215 159.797h30.848l13.174-39.356h60.061l13.256 39.356Zm-65.461-62.675 21.602-64.311h1.227l21.602 64.311h-44.431Zm126.831-7.527v70.202h-28.23V71.839h27.002v20.374h1.392c2.782-6.71 7.2-12.028 13.255-15.956 6.056-3.927 13.584-5.89 22.503-5.89 8.264 0 15.465 1.8 21.684 5.318 6.137 3.518 10.964 8.673 14.319 15.382 3.437 6.71 5.074 14.81 4.992 24.383v76.175h-28.23v-71.92c0-8.019-2.046-14.237-6.219-18.819-4.173-4.5-9.819-6.791-17.102-6.791-4.91 0-9.328 1.063-13.174 3.272-3.846 2.128-6.792 5.237-9.001 9.328-2.046 4.009-3.191 8.918-3.191 14.728ZM589.233 239c-10.147 0-18.82-1.391-26.103-4.091-7.282-2.7-13.092-6.382-17.511-10.964-4.418-4.582-7.528-9.655-9.164-15.219l25.448-6.136c1.145 2.372 2.782 4.663 4.991 6.954 2.209 2.291 5.155 4.255 8.837 5.81 3.683 1.554 8.428 2.291 14.074 2.291 8.019 0 14.647-1.964 19.884-5.81 5.237-3.845 7.856-10.227 7.856-19.064v-22.665h-1.391c-1.473 2.946-3.601 5.892-6.383 9.001-2.782 3.109-6.464 5.645-10.965 7.691-4.582 2.046-10.228 3.109-17.101 3.109-9.165 0-17.511-2.209-25.039-6.545-7.446-4.337-13.42-10.883-17.757-19.474-4.418-8.673-6.628-19.473-6.628-32.565 0-13.091 2.21-24.301 6.628-33.383 4.419-9.082 10.311-15.955 17.839-20.7 7.528-4.746 15.874-7.037 25.039-7.037 7.037 0 12.846 1.145 17.347 3.518 4.582 2.373 8.182 5.236 10.883 8.51 2.7 3.272 4.746 6.382 6.137 9.327h1.554v-19.8h27.821v121.749c0 10.228-2.454 18.737-7.364 25.447-4.91 6.709-11.538 11.7-20.048 15.055-8.509 3.355-18.165 4.991-28.884 4.991Zm.245-71.266c5.974 0 11.047-1.473 15.302-4.337 4.173-2.945 7.446-7.118 9.573-12.519 2.21-5.482 3.274-12.027 3.274-19.637 0-7.609-1.064-14.155-3.274-19.8-2.127-5.646-5.318-10.064-9.491-13.255-4.174-3.11-9.329-4.746-15.384-4.746s-11.537 1.636-15.792 4.91c-4.173 3.272-7.365 7.772-9.492 13.418-2.128 5.727-3.191 12.191-3.191 19.392 0 7.2 1.063 13.745 3.273 19.228 2.127 5.482 5.318 9.736 9.573 12.764 4.174 3.027 9.41 4.582 15.629 4.582Zm141.56-26.51V71.839h28.23v119.786h-27.412v-21.273h-1.227c-2.7 6.709-7.119 12.191-13.338 16.446-6.137 4.255-13.747 6.382-22.748 6.382-7.855 0-14.81-1.718-20.783-5.237-5.974-3.518-10.72-8.591-14.075-15.382-3.355-6.709-5.073-14.891-5.073-24.464V71.839h28.312v71.921c0 7.609 2.046 13.664 6.219 18.083 4.173 4.5 9.655 6.709 16.365 6.709 4.173 0 8.183-.982 12.111-3.028 3.927-2.045 7.118-5.072 9.655-9.082 2.537-4.091 3.764-9.164 3.764-15.218Zm65.707-109.395v159.796h-28.23V31.828h28.23Zm44.841 162.169c-7.61 0-14.402-1.391-20.457-4.091-6.055-2.7-10.883-6.791-14.32-12.109-3.518-5.319-5.237-11.946-5.237-19.801 0-6.791 1.228-12.355 3.765-16.773 2.536-4.419 5.891-7.937 10.228-10.637 4.337-2.618 9.164-4.664 14.647-6.055 5.4-1.391 11.046-2.373 16.856-3.027 7.037-.737 12.683-1.391 17.102-1.964 4.337-.573 7.528-1.555 9.574-2.782 1.963-1.309 3.027-3.273 3.027-5.973v-.491c0-5.891-1.718-10.391-5.237-13.664-3.518-3.191-8.51-4.828-15.056-4.828-6.955 0-12.356 1.473-16.447 4.5-4.009 3.028-6.71 6.546-8.183 10.719l-26.348-3.764c2.046-7.282 5.483-13.336 10.31-18.328 4.746-4.909 10.638-8.59 17.511-11.045 6.955-2.455 14.565-3.682 22.912-3.682 5.809 0 11.537.654 17.265 2.045s10.965 3.6 15.711 6.71c4.746 3.109 8.51 7.282 11.455 12.6 2.864 5.318 4.337 11.946 4.337 19.883v80.184h-27.166v-16.446h-.9c-1.719 3.355-4.092 6.464-7.201 9.328-3.109 2.864-6.955 5.237-11.619 6.955-4.828 1.718-10.229 2.536-16.529 2.536Zm7.364-20.701c5.646 0 10.556-1.145 14.729-3.354 4.173-2.291 7.364-5.237 9.655-9.001 2.292-3.763 3.355-7.854 3.355-12.273v-14.155c-.9.737-2.373 1.391-4.5 2.046-2.128.654-4.419 1.145-7.037 1.636-2.619.491-5.155.9-7.692 1.227-2.537.328-4.746.655-6.628.901-4.173.572-8.019 1.472-11.292 2.781-3.355 1.31-5.973 3.11-7.855 5.401-1.964 2.291-2.864 5.318-2.864 8.918 0 5.237 1.882 9.164 5.728 11.782 3.682 2.782 8.51 4.091 14.401 4.091Zm64.643 18.328V71.839h27.412v19.965h1.227c2.21-6.955 5.974-12.274 11.292-16.038 5.319-3.763 11.456-5.645 18.329-5.645 1.555 0 3.355.082 5.237.163 1.964.164 3.601.328 4.91.573v25.938c-1.227-.41-3.109-.819-5.646-1.146a58.814 58.814 0 0 0-7.446-.49c-5.155 0-9.738 1.145-13.829 3.354-4.091 2.209-7.282 5.236-9.655 9.164-2.373 3.927-3.519 8.427-3.519 13.5v70.448h-28.312ZM222.077 39.192l-8.019 125.923L137.387 0l84.69 39.192Zm-53.105 162.825-57.933 33.056-57.934-33.056 11.783-28.556h92.301l11.783 28.556ZM111.039 62.675l30.357 73.803H80.681l30.358-73.803ZM7.937 165.115 0 39.192 84.69 0 7.937 165.115Z"
+          />
+        </g>
+        <defs>
+          <radialGradient
+            id="c"
+            cx="0"
+            cy="0"
+            r="1"
+            gradientTransform="rotate(118.122 171.182 60.81) scale(205.794)"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stop-color="#FF41F8" />
+            <stop offset=".707" stop-color="#FF41F8" stop-opacity=".5" />
+            <stop offset="1" stop-color="#FF41F8" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient
+            id="b"
+            x1="0"
+            x2="982"
+            y1="192"
+            y2="192"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stop-color="#F0060B" />
+            <stop offset="0" stop-color="#F0070C" />
+            <stop offset=".526" stop-color="#CC26D5" />
+            <stop offset="1" stop-color="#7702FF" />
+          </linearGradient>
+          <clipPath id="a"><path fill="#fff" d="M0 0h982v239H0z" /></clipPath>
+        </defs>
+      </svg>
+      <h1>Hello, {{ title() }}</h1>
+      <p>Congratulations! Your app is running. 🎉</p>
+    </div>
+    <div class="divider" role="separator" aria-label="Divider"></div>
+    <div class="right-side">
+      <div class="pill-group">
+        @for (item of [
+          { title: 'Explore the Docs', link: 'https://angular.dev' },
+          { title: 'Learn with Tutorials', link: 'https://angular.dev/tutorials' },
+          { title: 'Prompt and best practices for AI', link: 'https://angular.dev/ai/develop-with-ai'},
+          { title: 'CLI Docs', link: 'https://angular.dev/tools/cli' },
+          { title: 'Angular Language Service', link: 'https://angular.dev/tools/language-service' },
+          { title: 'Angular DevTools', link: 'https://angular.dev/tools/devtools' },
+        ]; track item.title) {
+          <a
+            class="pill"
+            [href]="item.link"
+            target="_blank"
+            rel="noopener"
+          >
+            <span>{{ item.title }}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="14"
+              viewBox="0 -960 960 960"
+              width="14"
+              fill="currentColor"
+            >
+              <path
+                d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"
+              />
+            </svg>
+          </a>
+        }
+      </div>
+      <div class="social-links">
+        <a
+          href="https://github.com/angular/angular"
+          aria-label="Github"
+          target="_blank"
+          rel="noopener"
+        >
+          <svg
+            width="25"
+            height="24"
+            viewBox="0 0 25 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            alt="Github"
+          >
+            <path
+              d="M12.3047 0C5.50634 0 0 5.50942 0 12.3047C0 17.7423 3.52529 22.3535 8.41332 23.9787C9.02856 24.0946 9.25414 23.7142 9.25414 23.3871C9.25414 23.0949 9.24389 22.3207 9.23876 21.2953C5.81601 22.0377 5.09414 19.6444 5.09414 19.6444C4.53427 18.2243 3.72524 17.8449 3.72524 17.8449C2.61064 17.082 3.81137 17.0973 3.81137 17.0973C5.04697 17.1835 5.69604 18.3647 5.69604 18.3647C6.79321 20.2463 8.57636 19.7029 9.27978 19.3881C9.39052 18.5924 9.70736 18.0499 10.0591 17.7423C7.32641 17.4347 4.45429 16.3765 4.45429 11.6618C4.45429 10.3185 4.9311 9.22133 5.72065 8.36C5.58222 8.04931 5.16694 6.79833 5.82831 5.10337C5.82831 5.10337 6.85883 4.77319 9.2121 6.36459C10.1965 6.09082 11.2424 5.95546 12.2883 5.94931C13.3342 5.95546 14.3801 6.09082 15.3644 6.36459C17.7023 4.77319 18.7328 5.10337 18.7328 5.10337C19.3942 6.79833 18.9789 8.04931 18.8559 8.36C19.6403 9.22133 20.1171 10.3185 20.1171 11.6618C20.1171 16.3888 17.2409 17.4296 14.5031 17.7321C14.9338 18.1012 15.3337 18.8559 15.3337 20.0084C15.3337 21.6552 15.3183 22.978 15.3183 23.3779C15.3183 23.7009 15.5336 24.0854 16.1642 23.9623C21.0871 22.3484 24.6094 17.7341 24.6094 12.3047C24.6094 5.50942 19.0999 0 12.3047 0Z"
+            />
+          </svg>
+        </a>
+        <a
+          href="https://twitter.com/angular"
+          aria-label="Twitter"
+          target="_blank"
+          rel="noopener"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            alt="Twitter"
+          >
+            <path
+              d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+            />
+          </svg>
+        </a>
+        <a
+          href="https://www.youtube.com/channel/UCbn1OgGei-DV7aSRo_HaAiw"
+          aria-label="Youtube"
+          target="_blank"
+          rel="noopener"
+        >
+          <svg
+            width="29"
+            height="20"
+            viewBox="0 0 29 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            alt="Youtube"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M27.4896 1.52422C27.9301 1.96749 28.2463 2.51866 28.4068 3.12258C29.0004 5.35161 29.0004 10 29.0004 10C29.0004 10 29.0004 14.6484 28.4068 16.8774C28.2463 17.4813 27.9301 18.0325 27.4896 18.4758C27.0492 18.9191 26.5 19.2389 25.8972 19.4032C23.6778 20 14.8068 20 14.8068 20C14.8068 20 5.93586 20 3.71651 19.4032C3.11363 19.2389 2.56449 18.9191 2.12405 18.4758C1.68361 18.0325 1.36732 17.4813 1.20683 16.8774C0.613281 14.6484 0.613281 10 0.613281 10C0.613281 10 0.613281 5.35161 1.20683 3.12258C1.36732 2.51866 1.68361 1.96749 2.12405 1.52422C2.56449 1.08095 3.11363 0.76113 3.71651 0.596774C5.93586 0 14.8068 0 14.8068 0C14.8068 0 23.6778 0 25.8972 0.596774C26.5 0.76113 27.0492 1.08095 27.4896 1.52422ZM19.3229 10L11.9036 5.77905V14.221L19.3229 10Z"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * The content above * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * * -->
+<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * End of Placeholder  * * * * * * * * * * * * -->
+<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
+
+
+<router-outlet />
+
+
+=== p\app.routes.server.ts ===
+import { RenderMode, ServerRoute } from '@angular/ssr';
+
+export const serverRoutes: ServerRoute[] = [
+  {
+    path: '**',
+    renderMode: RenderMode.Prerender
+  }
+];
+
+
+=== p\app.routes.ts ===
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [];
+
+
+=== p\app.scss ===
+
+
+=== p\app.spec.ts ===
+import { TestBed } from '@angular/core/testing';
+import { App } from './app';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, front');
+  });
+});
+
+
+=== p\app.ts ===
+import { Component, signal } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  templateUrl: './app.html',
+  styleUrl: './app.scss'
+})
+export class App {
+  protected readonly title = signal('front');
+}
+
+
+`$([Environment]::NewLine)
+## [REQUEST] ?붿껌?ы빆
+
+### 1. **?댁뒋 遺꾩꽍 諛?遺꾨쪟**
+媛?諛쒓껄???댁뒋??????ㅼ쓬怨?媛숈씠 遺꾨쪟?댁＜?몄슂:
+
+- **[CRITICAL]**: 蹂댁븞 痍⑥빟?? ?ш컖??踰꾧렇 媛?μ꽦
+- **[HIGH]**: ?깅뒫 ?댁뒋, ?꾪궎?띿쿂 臾몄젣
+- **[MEDIUM]**: 肄붾뱶 ?덉쭏, ?좎?蹂댁닔??媛쒖꽑
+- **[LOW]**: 肄붾뵫 而⑤깽?? ?ㅽ???媛?대뱶
+
+### 2. **援ъ껜?곸씤 媛쒖꽑 諛⑹븞**
+- 臾몄젣??吏?곷퓧留??꾨땲??**援ъ껜?곸씤 ?닿껐 諛⑸쾿** ?쒖떆
+- **Before/After 肄붾뱶 ?덉젣** ?ы븿
+- **??洹몃젃寃?媛쒖꽑?댁빞 ?섎뒗吏** ?댁쑀 ?ㅻ챸
+
+### 3. **?꾨젅?꾩썙?щ퀎 踰좎뒪???꾨옓?곗뒪**
+- **Spring Boot**: @Service, @Repository, @Transactional ?깆쓽 ?щ컮瑜??ъ슜
+- **JPA/Hibernate**: ?뷀떚???ㅺ퀎, 荑쇰━ 理쒖쟻?? 吏??濡쒕뵫
+- **Angular**: 而댄룷?뚰듃 ?ㅺ퀎, ?쒕퉬???⑦꽩, RxJS ?쒖슜
+- **TypeScript**: ????덉젙?? ?명꽣?섏씠???쒖슜
+
+### 4. **?곗꽑?쒖쐞 ?쒖븞**
+媛쒖꽑?ы빆???곗꽑?쒖쐞???곕씪 ?뺣젹?섏뿬 ?쒖떆?댁＜?몄슂.
+
+### 5. **異붽? 怨좊젮?ы빆**
+- ?ν썑 ?뺤옣?깆쓣 ?꾪븳 ?쒖븞
+- ?깅뒫 紐⑤땲?곕쭅 ?ъ씤??
+- 異붽? ?뚯뒪?멸? ?꾩슂???곸뿭
+
+---
+
+**[李멸퀬]**: ?⑥닚??臾몄젣 吏?곷낫?ㅻ뒗 **援먯쑁??媛移?*媛 ?덈뒗 由щ럭瑜?遺?곷뱶由쎈땲?? 媛??쒖븞?ы빆??**??以묒슂?쒖?**, **?대뼡 ?댁젏??媛?몃떎二쇰뒗吏** ?ㅻ챸?댁＜?쒕㈃ ?붿슧 ?꾩????⑸땲??
