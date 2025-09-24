@@ -1,0 +1,63 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="logo-section">
+      <h1 class="logo">QCheck</h1>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-input"
+          [class.error]="email?.invalid && email?.touched"
+          placeholder="Enter your email"
+        />
+        <div class="error-message" *ngIf="email?.invalid && email?.touched">
+          {{ getFieldErrorMessage('email') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="password?.invalid && password?.touched"
+          placeholder="Enter your password"
+        />
+        <div class="error-message" *ngIf="password?.invalid && password?.touched">
+          {{ getFieldErrorMessage('password') }}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="login-button"
+        [disabled]="isLoading()"
+        [class.loading]="isLoading()"
+      >
+        <span *ngIf="!isLoading()">Log in</span>
+        <span *ngIf="isLoading()" class="loading-text">Signing in...</span>
+      </button>
+
+      <div class="error-message global-error" *ngIf="errorMessage()">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="forgot-password-section">
+        <button
+          type="button"
+          class="forgot-password-link"
+          (click)="onForgotPassword()"
+        >
+          Forgot password?
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
