@@ -2,125 +2,131 @@
 chcp 65001 >nul
 echo.
 echo ===============================================
-echo    Qcheck 코드리뷰 시스템 - 초기 설정
+echo    Qcheck Code Review System - Initial Setup
 echo ===============================================
 echo.
 
-echo 🚀 코드리뷰 시스템을 초기 설정합니다...
+echo 🚀 Setting up the code review system...
 echo.
 
-REM 1. 디렉토리 생성
-echo 1단계: 필요한 디렉토리 생성 중...
+REM 1. Directory creation
+echo Step 1: Creating required directories...
 if not exist "scripts" mkdir scripts
-if not exist "review-output" mkdir review-output
-if not exist "review-output\templates" mkdir review-output\templates
-echo [SUCCESS] 디렉토리 생성 완료
+if not exist "code_review\review-output" mkdir code_review\review-output
+if not exist "code_review\review-output\templates" mkdir code_review\review-output\templates
+echo [SUCCESS] Directory creation completed
 
-REM 2. PowerShell 실행 정책 확인
+REM 2. PowerShell execution policy check
 echo.
-echo 2단계: PowerShell 실행 정책 확인 중...
+echo Step 2: Checking PowerShell execution policy...
 powershell -Command "Get-ExecutionPolicy" >temp_policy.txt
 set /p current_policy=<temp_policy.txt
 del temp_policy.txt
 
-echo 현재 PowerShell 실행 정책: %current_policy%
+echo Current PowerShell execution policy: %current_policy%
 
 if "%current_policy%"=="Restricted" (
     echo.
-    echo [WARNING] PowerShell 실행 정책이 제한되어 있습니다.
-    echo 💡 다음 중 하나를 선택하세요:
+    echo [WARNING] PowerShell execution policy is restricted.
+    echo 💡 Please choose one of the following options:
     echo.
-    echo    1. 현재 사용자에 대해서만 실행 정책 변경 ^(권장^)
-    echo    2. 일회성으로 스크립트 실행
-    echo    3. 설정하지 않고 계속
+    echo    1. Change execution policy for current user only ^(Recommended^)
+    echo    2. Execute scripts one-time with bypass
+    echo    3. Continue without changing settings
     echo.
-    set /p policy_choice="선택 (1/2/3): "
+    set /p policy_choice="Choice (1/2/3): "
 
     if "%policy_choice%"=="1" (
-        echo 사용자 실행 정책을 RemoteSigned로 변경합니다...
+        echo Changing user execution policy to RemoteSigned...
         powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
-        echo [SUCCESS] 실행 정책 변경 완료
+        echo [SUCCESS] Execution policy changed successfully
     ) else if "%policy_choice%"=="2" (
-        echo 💡 스크립트 실행 시 다음 명령어를 사용하세요:
-        echo    powershell -ExecutionPolicy Bypass -File "scripts\extract-code.ps1" -Changed
+        echo 💡 Use the following command when running scripts:
+        echo    powershell -ExecutionPolicy Bypass -Command "& '.\code_review\scripts\extract-code.ps1' -Changed"
     ) else (
-        echo [WARNING] 실행 정책 미변경. 스크립트 실행 시 오류가 발생할 수 있습니다.
+        echo [WARNING] Execution policy unchanged. Script execution errors may occur.
     )
 ) else (
-    echo [SUCCESS] PowerShell 실행 정책이 적절히 설정되어 있습니다.
+    echo [SUCCESS] PowerShell execution policy is properly configured.
 )
 
-REM 3. Git 설치 확인
+REM 3. Git installation check
 echo.
-echo 3단계: Git 설치 확인 중...
+echo Step 3: Checking Git installation...
 git --version >nul 2>&1
 if %ERRORLEVEL% == 0 (
-    echo [SUCCESS] Git이 설치되어 있습니다.
+    echo [SUCCESS] Git is installed.
     git --version
 ) else (
-    echo ❌ Git이 설치되어 있지 않습니다.
-    echo 💡 Git for Windows를 설치해주세요: https://git-scm.com/download/win
+    echo ❌ Git is not installed.
+    echo 💡 Please install Git for Windows: https://git-scm.com/download/win
 )
 
-REM 4. 프롬프트 템플릿 생성
+REM 4. Generate prompt templates
 echo.
-echo 4단계: 프롬프트 템플릿 생성 중...
+echo Step 4: Generating prompt templates...
 if exist "scripts\create-prompt-templates.ps1" (
-    powershell -ExecutionPolicy Bypass -File "scripts\create-prompt-templates.ps1"
-    echo [SUCCESS] 프롬프트 템플릿 생성 완료
+    powershell -ExecutionPolicy Bypass -Command "& '.\code_review\scripts\create-prompt-templates.ps1'"
+    echo [SUCCESS] Prompt template generation completed
 ) else (
-    echo [WARNING] create-prompt-templates.ps1 파일이 없습니다.
-    echo 💡 스크립트 파일들이 모두 있는지 확인해주세요.
+    echo [WARNING] create-prompt-templates.ps1 file not found.
+    echo 💡 Please ensure all script files are present.
 )
 
-REM 5. 설정 파일 확인
+REM 5. Configuration file check
 echo.
-echo 5단계: 설정 파일 확인 중...
+echo Step 5: Checking configuration file...
 if exist ".code-review-config" (
-    echo [SUCCESS] 설정 파일이 존재합니다.
-    echo 📄 현재 설정:
+    echo [SUCCESS] Configuration file exists.
+    echo 📄 Current Settings:
     findstr /R "^[^#]" .code-review-config
 ) else (
-    echo [WARNING] 설정 파일이 없습니다. 기본값을 사용합니다.
-    echo 💡 .code-review-config 파일을 생성하여 설정을 커스터마이징할 수 있습니다.
+    echo [WARNING] Configuration file not found. Using default values.
+    echo 💡 You can create a .code-review-config file to customize settings.
 )
 
-REM 6. 테스트 실행
+REM 6. System test
 echo.
-echo 6단계: 시스템 테스트 중...
-echo [INFO] 간단한 테스트를 실행합니다...
+echo Step 6: Testing system...
+echo [INFO] Running simple system test...
 
 if exist "scripts\extract-code.ps1" (
-    echo [SUCCESS] extract-code.ps1 스크립트 존재
+    echo [SUCCESS] extract-code.ps1 script exists
 ) else (
-    echo ❌ extract-code.ps1 스크립트 없음
+    echo ❌ extract-code.ps1 script missing
 )
 
 if exist "scripts\generate-prompt.ps1" (
-    echo [SUCCESS] generate-prompt.ps1 스크립트 존재
+    echo [SUCCESS] generate-prompt.ps1 script exists
 ) else (
-    echo ❌ generate-prompt.ps1 스크립트 없음
+    echo ❌ generate-prompt.ps1 script missing
 )
 
 echo.
 echo ===============================================
-echo           🎉 초기 설정 완료!
+echo           🎉 Initial Setup Complete!
 echo ===============================================
 echo.
-echo 📋 사용 가능한 명령어:
+echo 📋 Available Commands:
 echo.
-echo    🔄 변경분 리뷰:     code-review-changed.bat
-echo    [ALL] 전체 코드 리뷰:   code-review-all.bat
-echo    [SECURITY] 보안 중심 리뷰:   code-review-security.bat
-echo    [PERFORMANCE] 성능 최적화 리뷰: code-review-performance.bat
+echo    🔄 Changed Files Review:      code-review-changed.bat
+echo    📋 Full Code Review:          code-review-all.bat
+echo    🔒 Security-Focused Review:   code-review-security.bat
+echo    ⚡ Performance Review:        code-review-performance.bat
 echo.
-echo 📁 주요 파일 위치:
-echo    • 스크립트:        scripts\
-echo    • 결과 출력:       review-output\
-echo    • 템플릿:          review-output\templates\
-echo    • 설정 파일:       .code-review-config
+echo 📁 Important File Locations:
+echo    • Scripts:           scripts\
+echo    • Output Results:    code_review\review-output\
+echo    • Templates:         code_review\review-output\templates\
+echo    • Configuration:     .code-review-config
 echo.
-echo 📖 자세한 사용법은 README-code-review.md 파일을 참조하세요.
+echo 📖 For detailed usage instructions, refer to README-code-review.md file.
+echo.
+echo 💡 The system supports execution from any directory within the project:
+echo    - Project root (/Qcheck/)
+echo    - Backend directory (/Qcheck/back/)
+echo    - Frontend directory (/Qcheck/front/)
+echo    - Code review directory (/Qcheck/code_review/)
 echo.
 
 pause

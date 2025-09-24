@@ -2,81 +2,81 @@
 chcp 65001 >nul
 echo.
 echo ===============================================
-echo    Qcheck 코드리뷰 시스템 - 성능 최적화 리뷰
+echo    Qcheck Code Review System - Performance Optimization Review
 echo ===============================================
 echo.
 
-echo [PERFORMANCE] 성능 최적화 관점에서 코드를 분석합니다...
+echo [PERFORMANCE] Analyzing code from performance optimization perspective...
 echo.
 
-echo 1단계: 코드 추출 중...
-REM PowerShell 스크립트 실행 (변경분 기준)
-powershell -ExecutionPolicy Bypass -File "scripts\extract-code.ps1" -Changed
+echo Step 1: Extracting code...
+REM PowerShell script execution (based on changes)
+powershell -ExecutionPolicy Bypass -Command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; & '.\code_review\scripts\extract-code.ps1' -Changed"
 
 if %ERRORLEVEL% == 0 (
     echo.
-    echo 2단계: 성능 중심 프롬프트 생성 중...
+    echo Step 2: Generating performance-focused prompt...
 
-    REM 성능 템플릿 복사
-    if exist "review-output\templates\performance-review-prompt.txt" (
-        copy "review-output\templates\performance-review-prompt.txt" "review-output\performance-prompt.txt" >nul
+    REM Copy performance template
+    if exist "code_review\review-output\templates\performance-review-prompt.txt" (
+        copy "code_review\review-output\templates\performance-review-prompt.txt" "code_review\review-output\performance-prompt.txt" >nul
 
         echo.
-        echo [SUCCESS] 성능 최적화 코드리뷰 프롬프트 생성 완료!
+        echo [SUCCESS] Performance optimization code review prompt generated!
         echo.
-        echo 📁 생성된 파일:
-        echo    - review-output\performance-prompt.txt ^(성능 중심 프롬프트 템플릿^)
-        echo    - review-output\code-to-review.txt ^(분석할 코드^)
-        echo    - review-output\file-list.txt ^(변경된 파일 목록^)
+        echo 📁 Generated Files:
+        echo    - code_review\review-output\performance-prompt.txt ^(Performance-focused prompt template^)
+        echo    - code_review\review-output\code-to-review.txt ^(Code to analyze^)
+        echo    - code_review\review-output\file-list.txt ^(Changed file list^)
         echo.
-        echo [PERFORMANCE] 성능 검토 항목:
-        echo    ✓ N+1 쿼리 문제 분석
-        echo    ✓ 알고리즘 복잡도 최적화
-        echo    ✓ 메모리 사용량 개선
-        echo    ✓ 데이터베이스 쿼리 최적화
-        echo    ✓ 캐싱 전략 검토
-        echo    ✓ I/O 작업 최적화
-        echo    ✓ Frontend 렌더링 성능
+        echo [PERFORMANCE] Performance Review Items:
+        echo    ✓ N+1 query problem analysis
+        echo    ✓ Algorithm complexity optimization
+        echo    ✓ Memory usage improvement
+        echo    ✓ Database query optimization
+        echo    ✓ Caching strategy review
+        echo    ✓ I/O operation optimization
+        echo    ✓ Frontend rendering performance
         echo.
-        echo 📊 성능 측정 지표:
-        echo    • 응답 시간 ^(Response Time^)
-        echo    • 처리량 ^(Throughput^)
-        echo    • 메모리 사용량
-        echo    • CPU 사용률
-        echo    • 데이터베이스 쿼리 시간
+        echo 📊 Performance Metrics:
+        echo    • Response Time
+        echo    • Throughput
+        echo    • Memory Usage
+        echo    • CPU Utilization
+        echo    • Database Query Time
         echo.
-        echo 📋 다음 단계:
-        echo    1. review-output\performance-prompt.txt 파일을 편집
-        echo    2. {여기에 코드가 삽입됩니다} 부분을 실제 코드로 교체
-        echo    3. Claude에게 성능 최적화 리뷰 요청
+        echo 📋 Next Steps:
+        echo    1. Edit code_review\review-output\performance-prompt.txt file
+        echo    2. Replace {CODE_INSERTION_POINT} with actual code
+        echo    3. Request performance optimization review from Claude
         echo.
 
-        REM 성능 프롬프트 파일 자동 열기
-        set /p openfile="[INFO] 성능 프롬프트 파일을 편집하시겠습니까? (y/n): "
+        REM Automatically open performance prompt file
+        set /p openfile="[INFO] Would you like to edit the performance prompt file? (y/n): "
         if /i "%openfile%"=="y" (
-            echo [INFO] 성능 프롬프트 파일을 기본 편집기에서 열고 있습니다...
-            start "" "review-output\performance-prompt.txt"
+            echo [INFO] Opening performance prompt file in default editor...
+            start "" "code_review\review-output\performance-prompt.txt"
             echo.
-            echo 💡 편집 가이드:
-            echo    - 파일 하단의 {여기에 코드가 삽입됩니다} 텍스트를 찾으세요
-            echo    - 해당 부분을 review-output\code-to-review.txt의 내용으로 교체하세요
-            echo    - 완성된 프롬프트를 Claude에게 전달하세요
-            echo    - 성능 이슈의 우선순위와 예상 효과를 요청하세요
+            echo 💡 Editing Guide:
+            echo    - Find the {CODE_INSERTION_POINT} text at the bottom of the file
+            echo    - Replace that section with contents from code_review\review-output\code-to-review.txt
+            echo    - Submit the completed prompt to Claude
+            echo    - Request priority and expected impact of performance issues
         )
     ) else (
-        echo [WARNING] 성능 템플릿 파일을 찾을 수 없습니다.
-        echo 💡 scripts\create-prompt-templates.ps1을 먼저 실행해주세요.
+        echo [WARNING] Performance template file not found.
+        echo 💡 Please run scripts\create-prompt-templates.ps1 first.
     )
 ) else (
     echo.
-    echo ❌ 코드 추출 중 오류가 발생했습니다.
-    echo 💡 문제 해결 방법:
-    echo    1. Git 저장소인지 확인
-    echo    2. 변경된 파일이 있는지 확인
-    echo    3. PowerShell 실행 정책 확인
+    echo ❌ An error occurred during code extraction.
+    echo 💡 Troubleshooting:
+    echo    1. Ensure this is a Git repository
+    echo    2. Verify there are changed files
+    echo    3. Check PowerShell execution policy
     echo.
-    echo 🔧 수동 실행 방법:
-    echo    powershell -ExecutionPolicy Bypass -File "scripts\extract-code.ps1" -Changed
+    echo 🔧 Manual execution method:
+    echo    powershell -ExecutionPolicy Bypass -Command "& '.\code_review\scripts\extract-code.ps1' -Changed"
 )
 
 echo.
