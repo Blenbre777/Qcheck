@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # 템플릿 디렉토리 생성
-TEMPLATE_DIR="review-output/templates"
+TEMPLATE_DIR="code_review/review-output/templates"
 mkdir -p "$TEMPLATE_DIR"
 
 echo -e "${BLUE}[INFO] 코드리뷰 전용 프롬프트 템플릿 생성${NC}"
@@ -438,7 +438,7 @@ cat > "$TEMPLATE_DIR/usage-guide.md" << 'EOF'
 
 2. **적절한 템플릿 선택**
    ```bash
-   cp review-output/templates/security-review-prompt.txt review-output/custom-prompt.txt
+   cp code_review/review-output/templates/security-review-prompt.txt code_review/review-output/custom-prompt.txt
    ```
 
 3. **템플릿에 코드 삽입**

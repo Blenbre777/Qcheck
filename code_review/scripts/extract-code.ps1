@@ -1,11 +1,11 @@
-﻿# =============================================================================
-# 코드 추출 스크립트 (PowerShell) - Claude 코드리뷰용
 # =============================================================================
-# 사용법:
-#   .\scripts\extract-code.ps1 -All                    # 전체 코드 추출
-#   .\scripts\extract-code.ps1 -Changed                # 변경분만 추출
-#   .\scripts\extract-code.ps1 -Since HEAD~3           # 특정 커밋 이후 변경분
-#   .\scripts\extract-code.ps1 -Files "*.java"         # 특정 패턴 파일만
+# Code Extraction Script (PowerShell) - For Claude Code Review
+# =============================================================================
+# Usage:
+#   .\scripts\extract-code.ps1 -All                    # Extract all code
+#   .\scripts\extract-code.ps1 -Changed                # Extract only changes
+#   .\scripts\extract-code.ps1 -Since HEAD~3           # Extract changes since specific commit
+#   .\scripts\extract-code.ps1 -Files "*.java"         # Extract specific file patterns
 # =============================================================================
 
 param(
@@ -16,7 +16,7 @@ param(
     [switch]$Help
 )
 
-# UTF-8 인코딩 설정 (강화)
+# UTF-8 encoding setup (enhanced)
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
@@ -24,9 +24,34 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'UTF8'
 $PSDefaultParameterValues['Add-Content:Encoding'] = 'UTF8'
 $PSDefaultParameterValues['Set-Content:Encoding'] = 'UTF8'
 
-# UTF-8 인코딩 객체 생성 (BOM 없음)
+# UTF-8 encoding object creation (without BOM)
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-# 색상 정의 (PowerShell 5.0+)
+
+# Function: Find project root directory
+function Find-ProjectRoot {
+    $currentDir = Get-Location
+    while ($currentDir.Path -ne $currentDir.Root.Path) {
+        if ((Test-Path (Join-Path $currentDir.Path ".git")) -or
+            (Test-Path (Join-Path $currentDir.Path "code_review")) -or
+            ((Test-Path (Join-Path $currentDir.Path "back")) -and (Test-Path (Join-Path $currentDir.Path "front")))) {
+            return $currentDir.Path
+        }
+        $currentDir = $currentDir.Parent
+    }
+    throw "Project root directory not found. Please run this script from within the Qcheck project."
+}
+
+# Set project root and working directory
+try {
+    $ProjectRoot = Find-ProjectRoot
+    Set-Location $ProjectRoot
+    Write-Host "[INFO] Project root detected: $ProjectRoot" -ForegroundColor Green
+} catch {
+    Write-Host "[ERROR] $_" -ForegroundColor Red
+    exit 1
+}
+
+# Color output function (PowerShell 5.0+)
 function Write-ColorText {
     param(
         [string]$Text,
@@ -35,74 +60,74 @@ function Write-ColorText {
     Write-Host $Text -ForegroundColor $Color
 }
 
-# 설정 로드
-$ConfigFile = ".code-review-config"
+# Load configuration
+$ConfigFile = "code_review\.code-review-config"
 $Config = @{}
 
 if (Test-Path $ConfigFile) {
-    Write-ColorText "[CONFIG] 설정 파일 로드: $ConfigFile" "Yellow"
+    Write-ColorText "[CONFIG] Loading configuration file: $ConfigFile" "Yellow"
     Get-Content $ConfigFile | ForEach-Object {
         if ($_ -match '^([^#=]+)=(.*)$') {
             $Config[$matches[1].Trim()] = $matches[2].Trim().Trim('"')
         }
     }
 } else {
-    Write-ColorText "[WARNING] 설정 파일이 없습니다. 기본값을 사용합니다." "Yellow"
-    # 기본 설정값
+    Write-ColorText "[WARNING] Configuration file not found. Using default values." "Yellow"
+    # Default configuration values
     $Config = @{
-        "TARGET_DIRS" = "../back/src ../front/src"
+        "TARGET_DIRS" = "back/src front/src"
         "EXCLUDE_PATTERNS" = "node_modules target .git *.min.js *.map build dist coverage .nyc_output logs tmp temp"
         "INCLUDE_EXTENSIONS" = "java ts js html scss css xml properties json yaml yml"
         "MAX_FILE_SIZE" = "500"
-        "OUTPUT_DIR" = "review-output"
+        "OUTPUT_DIR" = "code_review/review-output"
     }
 }
 
-# 설정값 파싱
-$TargetDirs = $Config["TARGET_DIRS"] -split '\s+'
+# Parse configuration values
+$TargetDirs = $Config["TARGET_DIRS"] -split '\s+' | ForEach-Object { Join-Path $ProjectRoot $_ }
 $ExcludePatterns = $Config["EXCLUDE_PATTERNS"] -split '\s+'
 $IncludeExtensions = $Config["INCLUDE_EXTENSIONS"] -split '\s+'
 $MaxFileSize = [int]$Config["MAX_FILE_SIZE"]
-$OutputDir = $Config["OUTPUT_DIR"]
+$OutputDir = Join-Path $ProjectRoot $Config["OUTPUT_DIR"]
 
-# 출력 디렉토리 생성
+# Create output directory
 if (!(Test-Path $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 }
 
-# 함수: 도움말 출력
+# Function: Show help
 function Show-Help {
-    Write-Host "코드리뷰용 코드 추출 스크립트 (PowerShell)"
+    Write-Host "Code Extraction Script for Code Review (PowerShell)"
     Write-Host ""
-    Write-Host "사용법:"
-    Write-Host "  .\scripts\extract-code.ps1 -All                    전체 코드 추출"
-    Write-Host "  .\scripts\extract-code.ps1 -Changed                최근 변경분 추출 (HEAD~1과 비교)"
-    Write-Host "  .\scripts\extract-code.ps1 -Since <commit>         특정 커밋 이후 변경분 추출"
-    Write-Host "  .\scripts\extract-code.ps1 -Files <pattern>        특정 파일 패턴만 추출"
-    Write-Host "  .\scripts\extract-code.ps1 -Help                   이 도움말 출력"
+    Write-Host "Usage:"
+    Write-Host "  .\scripts\extract-code.ps1 -All                    Extract all code"
+    Write-Host "  .\scripts\extract-code.ps1 -Changed                Extract recent changes (compare with HEAD~1)"
+    Write-Host "  .\scripts\extract-code.ps1 -Since <commit>         Extract changes since specific commit"
+    Write-Host "  .\scripts\extract-code.ps1 -Files <pattern>        Extract specific file patterns only"
+    Write-Host "  .\scripts\extract-code.ps1 -Help                   Show this help"
     Write-Host ""
-    Write-Host "예시:"
+    Write-Host "Examples:"
     Write-Host "  .\scripts\extract-code.ps1 -Changed"
     Write-Host "  .\scripts\extract-code.ps1 -Since HEAD~3"
     Write-Host "  .\scripts\extract-code.ps1 -Files `"*.java`""
     Write-Host "  .\scripts\extract-code.ps1 -All"
 }
 
-# 함수: 파일 크기 체크 (KB 단위)
+# Function: Check file size (in KB)
 function Test-FileSize {
     param([string]$FilePath)
 
     if (Test-Path $FilePath) {
         $sizeKB = (Get-Item $FilePath).Length / 1KB
         if ($sizeKB -gt $MaxFileSize) {
-            Write-ColorText "[WARNING] 큰 파일 건너뜀: $FilePath ($([math]::Round($sizeKB))KB > $MaxFileSize KB)" "Yellow"
+            Write-ColorText "[WARNING] Skipping large file: $FilePath ($([math]::Round($sizeKB))KB > $MaxFileSize KB)" "Yellow"
             return $false
         }
     }
     return $true
 }
 
-# 함수: 파일 확장자 체크
+# Function: Check file extension
 function Test-TargetFile {
     param([string]$FilePath)
 
@@ -110,7 +135,7 @@ function Test-TargetFile {
     return $ext -in $IncludeExtensions
 }
 
-# 함수: 제외 패턴 체크
+# Function: Check exclude patterns
 function Test-ExcludedFile {
     param([string]$FilePath)
 
@@ -122,14 +147,14 @@ function Test-ExcludedFile {
     return $false
 }
 
-# 함수: 전체 코드 추출
+# Function: Extract all code
 function Extract-AllCode {
-    Write-ColorText "[INFO] 전체 코드 추출 시작" "Cyan"
+    Write-ColorText "[INFO] Starting full code extraction" "Cyan"
 
     $codeFile = Join-Path $OutputDir "code-to-review.txt"
     $fileListFile = Join-Path $OutputDir "file-list.txt"
 
-    # 파일 초기화
+    # Initialize files
     [System.IO.File]::WriteAllText($codeFile, "", $utf8NoBom)
     [System.IO.File]::WriteAllText($fileListFile, "", $utf8NoBom)
 
@@ -138,23 +163,23 @@ function Extract-AllCode {
 
     foreach ($dir in $TargetDirs) {
         if (Test-Path $dir) {
-            Write-ColorText "[SCAN] $dir 디렉토리 스캔 중..." "Cyan"
+            Write-ColorText "[SCAN] Scanning directory: $dir" "Cyan"
 
             Get-ChildItem -Path $dir -Recurse -File | ForEach-Object {
                 $file = $_.FullName
-                $relativePath = $_.FullName.Substring((Get-Location).Path.Length + 1)
+                $relativePath = $_.FullName.Substring($ProjectRoot.Length + 1)
 
-                # 제외 패턴 체크
+                # Check exclude patterns
                 if (Test-ExcludedFile $relativePath) {
                     return
                 }
 
-                # 대상 파일인지 체크
+                # Check if target file
                 if (!(Test-TargetFile $_.Name)) {
                     return
                 }
 
-                # 파일 크기 체크
+                # Check file size
                 if (!(Test-FileSize $file)) {
                     return
                 }
@@ -172,25 +197,25 @@ function Extract-AllCode {
                 Write-ColorText "  [OK] $relativePath ($lines lines)" "Green"
             }
         } else {
-            Write-ColorText "`[WARNING`] 디렉토리가 없습니다: $dir" "Yellow"
+            Write-ColorText "[WARNING] Directory not found: $dir" "Yellow"
         }
     }
 
-    Write-ColorText "`[SUCCESS`] 전체 코드 추출 완료: $fileCount 개 파일, $lineCount 줄" "Green"
+    Write-ColorText "[SUCCESS] Full code extraction completed: $fileCount files, $lineCount lines" "Green"
     return $fileCount
 }
 
-# 함수: 변경분 추출
+# Function: Extract changed code
 function Extract-ChangedCode {
     param([string]$SinceCommit = "HEAD~1")
 
-    Write-ColorText "`[INFO`] 변경분 추출 시작 (기준: $SinceCommit)" "Cyan"
+    Write-ColorText "[INFO] Starting changed code extraction (since: $SinceCommit)" "Cyan"
 
-    # Git 저장소 확인
+    # Check Git repository
     try {
         git rev-parse --git-dir | Out-Null
     } catch {
-        Write-ColorText "[ERROR] Git 저장소가 아닙니다." "Red"
+        Write-ColorText "[ERROR] Not a Git repository." "Red"
         exit 1
     }
 
@@ -198,77 +223,80 @@ function Extract-ChangedCode {
     $fileListFile = Join-Path $OutputDir "file-list.txt"
     $diffFile = Join-Path $OutputDir "diff-summary.txt"
 
-    # Git diff 정보 생성
-    Write-ColorText "[INFO] Git diff 정보 생성 중..." "Cyan"
+    # Generate Git diff information
+    Write-ColorText "[INFO] Generating Git diff information..." "Cyan"
     $diffStat = git diff --stat $SinceCommit | Out-String
     [System.IO.File]::WriteAllText($diffFile, $diffStat, $utf8NoBom)
     $diffContent = git diff $SinceCommit | Out-String
     [System.IO.File]::AppendAllText($diffFile, $diffContent, $utf8NoBom)
 
-    # 변경된 파일 목록 가져오기
+    # Get list of changed files
     $changedFiles = git diff --name-only $SinceCommit
     $fileListContent = $changedFiles | Out-String
     [System.IO.File]::WriteAllText($fileListFile, $fileListContent, $utf8NoBom)
 
     if (!$changedFiles) {
-        Write-ColorText "`[WARNING`] 변경된 파일이 없습니다." "Yellow"
+        Write-ColorText "[WARNING] No changed files found." "Yellow"
         return 0
     }
 
-    # 파일 초기화
+    # Initialize files
     [System.IO.File]::WriteAllText($codeFile, "", $utf8NoBom)
 
     $fileCount = 0
     $lineCount = 0
 
     foreach ($file in $changedFiles) {
-        # 파일이 존재하는지 확인 (삭제된 파일일 수 있음)
-        if (!(Test-Path $file)) {
-            Write-ColorText " `[DELETED`] 삭제된 파일: $file" "Gray"
+        # Convert to absolute path from project root
+        $absoluteFile = Join-Path $ProjectRoot $file
+
+        # Check if file exists (might be deleted)
+        if (!(Test-Path $absoluteFile)) {
+            Write-ColorText " [DELETED] Deleted file: $file" "Gray"
             continue
         }
 
-        # 제외 패턴 체크
+        # Check exclude patterns
         if (Test-ExcludedFile $file) {
             continue
         }
 
-        # 대상 파일인지 체크
+        # Check if target file
         if (!(Test-TargetFile (Split-Path -Leaf $file))) {
             continue
         }
 
-        # 파일 크기 체크
-        if (!(Test-FileSize $file)) {
+        # Check file size
+        if (!(Test-FileSize $absoluteFile)) {
             continue
         }
 
         [System.IO.File]::AppendAllText($codeFile, "=== $file ===$([Environment]::NewLine)", $utf8NoBom)
-        $fileContent = Get-Content -Path $file -Encoding UTF8 -Raw
+        $fileContent = Get-Content -Path $absoluteFile -Encoding UTF8 -Raw
         [System.IO.File]::AppendAllText($codeFile, $fileContent, $utf8NoBom)
         [System.IO.File]::AppendAllText($codeFile, "$([Environment]::NewLine)$([Environment]::NewLine)", $utf8NoBom)
 
-        $lines = (Get-Content -Path $file).Count
+        $lines = (Get-Content -Path $absoluteFile).Count
         $fileCount++
         $lineCount += $lines
 
-        Write-ColorText "  `[OK`] $file - $lines lines" "Green"
+        Write-ColorText "  [OK] $file - $lines lines" "Green"
     }
 
-    Write-ColorText "`[SUCCESS`] 변경분 추출 완료: $fileCount 개 파일, $lineCount 줄" "Green"
+    Write-ColorText "[SUCCESS] Changed code extraction completed: $fileCount files, $lineCount lines" "Green"
     return $fileCount
 }
 
-# 함수: 특정 파일 패턴 추출
+# Function: Extract files by pattern
 function Extract-PatternFiles {
     param([string]$Pattern)
 
-    Write-ColorText "[SEARCH] 패턴별 파일 추출: $Pattern" "Cyan"
+    Write-ColorText "[SEARCH] Extracting files by pattern: $Pattern" "Cyan"
 
     $codeFile = Join-Path $OutputDir "code-to-review.txt"
     $fileListFile = Join-Path $OutputDir "file-list.txt"
 
-    # 파일 초기화
+    # Initialize files
     [System.IO.File]::WriteAllText($codeFile, "", $utf8NoBom)
     [System.IO.File]::WriteAllText($fileListFile, "", $utf8NoBom)
 
@@ -279,14 +307,14 @@ function Extract-PatternFiles {
         if (Test-Path $dir) {
             Get-ChildItem -Path $dir -Recurse -File -Filter $Pattern | ForEach-Object {
                 $file = $_.FullName
-                $relativePath = $_.FullName.Substring((Get-Location).Path.Length + 1)
+                $relativePath = $_.FullName.Substring($ProjectRoot.Length + 1)
 
-                # 제외 패턴 체크
+                # Check exclude patterns
                 if (Test-ExcludedFile $relativePath) {
                     return
                 }
 
-                # 파일 크기 체크
+                # Check file size
                 if (!(Test-FileSize $file)) {
                     return
                 }
@@ -301,20 +329,20 @@ function Extract-PatternFiles {
                 $fileCount++
                 $lineCount += $lines
 
-                Write-ColorText " `[OK`] $relativePath - $lines lines" "Green"
+                Write-ColorText " [OK] $relativePath - $lines lines" "Green"
             }
         }
     }
 
-    Write-ColorText "`[SUCCESS`] 패턴 파일 추출 완료: $fileCount 개 파일, $lineCount 줄" "Green"
+    Write-ColorText "[SUCCESS] Pattern file extraction completed: $fileCount files, $lineCount lines" "Green"
     return $fileCount
 }
 
-# 메인 실행 로직
-Write-ColorText "[START] Claude 코드리뷰용 코드 추출 스크립트 (PowerShell)" "Green"
+# Main execution logic
+Write-ColorText "[START] Claude Code Review Code Extraction Script (PowerShell)" "Green"
 Write-Host "================================================"
 
-# 파라미터 검증
+# Parameter validation
 if ($Help) {
     Show-Help
     exit 0
@@ -336,38 +364,39 @@ if ($All) {
     $mode = "pattern"
     $fileCount = Extract-PatternFiles $Files
 } else {
-    Write-ColorText "X 옵션을 지정해주세요." "Red"
+    Write-ColorText "[ERROR] Please specify an option." "Red"
     Show-Help
     exit 1
 }
 
-# 프롬프트 생성
+# Generate prompt
 if ($fileCount -gt 0) {
-    Write-ColorText "`[INFO`] 프롬프트 생성 중..." "Cyan"
+    Write-ColorText "[INFO] Generating prompt..." "Cyan"
 
-    # PowerShell 프롬프트 생성 스크립트 호출
-    if (Test-Path "scripts\generate-prompt.ps1") {
-        & "scripts\generate-prompt.ps1" -Mode $mode
+    # Call PowerShell prompt generation script
+    $generateScriptPath = Join-Path $ProjectRoot "code_review\scripts\generate-prompt.ps1"
+    if (Test-Path $generateScriptPath) {
+        & $generateScriptPath -Mode $mode
     } else {
-        Write-ColorText "`[WARNING`] generate-prompt.ps1을 찾을 수 없습니다." "Yellow"
+        Write-ColorText "[WARNING] generate-prompt.ps1 not found." "Yellow"
     }
 
     Write-Host ""
-    Write-ColorText "`[SUCCESS`] 코드 추출 완료!" "Green"
+    Write-ColorText "[SUCCESS] Code extraction completed!" "Green"
     Write-Host ""
-    Write-ColorText "[OUTPUT] 출력 파일:" "Cyan"
-    Write-Host "  - $OutputDir\code-to-review.txt - $fileCount files"
-    Write-Host "  - $OutputDir\review-prompt.txt (완성된 프롬프트)"
-    Write-Host "  - $OutputDir\file-list.txt (파일 목록)"
+    Write-ColorText "[OUTPUT] Output files:" "Cyan"
+    Write-Host "  - $($Config["OUTPUT_DIR"])\code-to-review.txt - $fileCount files"
+    Write-Host "  - $($Config["OUTPUT_DIR"])\review-prompt.txt (completed prompt)"
+    Write-Host "  - $($Config["OUTPUT_DIR"])\file-list.txt (file list)"
     if ($mode -eq "changed") {
-        Write-Host "  - $OutputDir\diff-summary.txt (Git diff 요약)"
+        Write-Host "  - $($Config["OUTPUT_DIR"])\diff-summary.txt (Git diff summary)"
     }
     Write-Host ""
-    Write-ColorText "[NEXT] 다음 단계:" "Yellow"
-    Write-Host "  1. $OutputDir\review-prompt.txt 내용을 Claude에게 복사"
-    Write-Host "  2. 리뷰 결과를 $OutputDir\claude-response.txt에 저장"
-    Write-Host "  3. 개선사항 적용 후 재검토"
+    Write-ColorText "[NEXT] Next steps:" "Yellow"
+    Write-Host "  1. Copy contents of $($Config["OUTPUT_DIR"])\review-prompt.txt to Claude"
+    Write-Host "  2. Save review results to $($Config["OUTPUT_DIR"])\claude-response.txt"
+    Write-Host "  3. Apply improvements and re-review"
 
 } else {
-    Write-ColorText "`[WARNING`] No files extracted" "Yellow"
+    Write-ColorText "[WARNING] No files extracted" "Yellow"
 }
