@@ -2,6 +2,7 @@ package com.qcheck.qcheck.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,25 @@ public class DatabaseConnectionService {
      */
     @Autowired
     private DataSource dataSource;
+
+    /**
+     * application.properties에서 데이터베이스 이름을 주입받는 필드
+     *
+     * @Value 어노테이션:
+     * - Spring의 프로퍼티 값 주입 어노테이션
+     * - "${app.db.name}" 표현식으로 application.properties의 app.db.name 값을 읽어옴
+     * - 프로퍼티 파일에서 실제 값을 동적으로 가져와 필드에 자동 주입
+     *
+     * 장점:
+     * - 하드코딩 방지: 설정 파일 변경만으로 DB 이름 수정 가능
+     * - 환경별 설정: 개발/운영 환경에서 서로 다른 DB 이름 사용 가능
+     * - 유지보수성 향상: 설정과 코드의 분리
+     *
+     * 프로퍼티 파일 위치: src/main/resources/application.properties
+     * 해당 설정: app.db.name=qcheck
+     */
+    @Value("${app.db.name}")
+    private String databaseName;
 
     /**
      * PostgreSQL 데이터베이스 연결 상태를 테스트하는 메서드
@@ -176,22 +196,26 @@ public class DatabaseConnectionService {
     /**
      * application.properties에서 데이터베이스 이름을 추출하는 헬퍼 메서드
      *
-     * 현재 구현:
-     * - 단순히 하드코딩된 "qcheck" 값을 반환
-     * - 실제로는 @Value 어노테이션을 사용하여 동적으로 값을 가져올 수 있음
+     * 기능:
+     * - @Value 어노테이션으로 주입된 databaseName 필드 값을 반환
+     * - application.properties의 app.db.name 속성값을 실제로 추출
+     * - 하드코딩된 값이 아닌 설정 파일의 실제 값 사용
      *
-     * 개선 가능한 방법:
-     * @Value("${app.db.name}")
-     * private String dbName;
+     * 장점:
+     * 1. 동적 설정: 프로퍼티 파일 변경만으로 DB 이름 수정 가능
+     * 2. 환경별 대응: 개발/테스트/운영 환경별로 다른 DB 이름 설정 가능
+     * 3. 일관성 보장: DataSource와 동일한 설정값 사용으로 일관성 유지
+     * 4. 디버깅 용이: 로그에서 실제 사용 중인 DB 이름 확인 가능
      *
-     * 용도:
-     * - 에러 로그에서 어떤 데이터베이스에 연결을 시도했는지 명시
-     * - 디버깅 시 설정값 확인 용이
+     * 사용 예시:
+     * - 에러 로그: "데이터베이스 'qcheck_dev' 연결 실패"
+     * - 성공 로그: "데이터베이스 'qcheck_prod' 연결 성공"
      *
-     * @return String 데이터베이스 이름 (현재는 "qcheck" 고정값)
+     * @return String application.properties의 app.db.name 값
+     *               (예: "qcheck", "qcheck_dev", "qcheck_test" 등)
      */
     private String getDbNameFromProperties() {
-        // application.properties에서 DB 이름 추출 (간단한 방법)
-        return "qcheck"; // 기본값
+        // @Value로 주입된 실제 DB 이름 반환
+        return databaseName;
     }
 }
