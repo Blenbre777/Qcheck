@@ -207,7 +207,7 @@ function Extract-AllCode {
 
 # Function: Extract changed code
 function Extract-ChangedCode {
-    param([string]$SinceCommit = "HEAD~1")
+    param([string]$SinceCommit = "HEAD")
 
     Write-ColorText "[INFO] Starting changed code extraction (since: $SinceCommit)" "Cyan"
 
