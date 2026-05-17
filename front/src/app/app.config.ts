@@ -1,8 +1,10 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { JwtInterceptor } from './interceptors/jwt.interceptor';
 
 /**
  * Angular 애플리케이션 전역 설정 객체
@@ -14,20 +16,31 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
  * 1. provideBrowserGlobalErrorListeners(): 전역 에러 처리 리스너 등록
  * 2. provideZoneChangeDetection(): Zone.js 기반 변화 감지 최적화
  * 3. provideRouter(): 라우팅 시스템 활성화
- * 4. provideClientHydration(): SSR 클라이언트 하이드레이션 기능
+ * 4. provideHttpClient(): HTTP 클라이언트 활성화
+ * 5. HTTP_INTERCEPTORS: JWT 인터셉터 등록
+ * 6. provideClientHydration(): SSR 클라이언트 하이드레이션 기능
  *
  * 설정 특징:
  * - eventCoalescing: true - 이벤트 병합을 통한 성능 최적화
  * - withEventReplay: SSR에서 클라이언트로 전환 시 이벤트 재생 기능
+ * - JwtInterceptor: 모든 HTTP 요청에 Authorization 헤더 자동 추가
  *
  * 주의사항:
  * - 서버 사이드 설정은 app.config.server.ts에서 별도 관리
  * - 프로바이더 순서가 중요할 수 있음 (의존성 주입 순서)
+ * - JwtInterceptor는 모든 요청에 토큰을 자동으로 추가
  */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes), provideClientHydration(withEventReplay())
+    provideRouter(routes),
+    provideHttpClient(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: JwtInterceptor,
+      multi: true
+    },
+    provideClientHydration(withEventReplay())
   ]
 };

@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 /**
  * 로그인 폼 데이터 인터페이스
@@ -92,7 +93,8 @@ export class LoginComponent {
    */
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     // 로그인 폼 초기화 - 이메일과 비밀번호 필드 생성
     this.loginForm = this.fb.group({
@@ -136,16 +138,17 @@ export class LoginComponent {
    * 처리 흐름:
    * 1. 폼 유효성 검증
    * 2. 로딩 상태 활성화
-   * 3. API 호출 (현재는 시뮬레이션)
-   * 4. 성공 시 대시보드로 이동 (향후 구현)
+   * 3. AuthService.login() API 호출
+   * 4. 성공 시 대시보드로 이동
    * 5. 실패 시 에러 메시지 표시
    *
    * 입력값: 없음 (폼 데이터는 this.loginForm.value에서 추출)
    * 반환값: void
    *
    * 주의사항:
-   * - 현재는 실제 API 호출 대신 setTimeout으로 시뮬레이션
-   * - 실제 구현 시 HTTP 클라이언트와 인증 서비스 필요
+   * - 실제 API 호출을 통해 토큰을 획득
+   * - 성공 시 AuthService가 자동으로 토큰을 localStorage에 저장
+   * - 토큰 자동 갱신은 AuthService에서 처리
    */
   onSubmit() {
     if (this.loginForm.valid) {
@@ -156,16 +159,21 @@ export class LoginComponent {
       // 폼 데이터 추출 (타입 안전성 보장)
       const loginData: LoginForm = this.loginForm.value;
 
-      // TODO: Implement actual login API call
-      console.log('Login attempt:', loginData);
-
-      // API 호출 시뮬레이션 (1초 지연)
-      setTimeout(() => {
-        this.isLoading.set(false);
-        // For now, just show success (implement actual auth later)
-        console.log('Login successful');
-        // this.router.navigate(['/dashboard']);
-      }, 1000);
+      // AuthService를 통한 실제 로그인 API 호출
+      this.authService.login(loginData.email, loginData.password).subscribe({
+        next: (response) => {
+          // 로그인 성공: 대시보드로 이동
+          console.log('Login successful:', response);
+          this.isLoading.set(false);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          // 로그인 실패: 에러 메시지 표시 (AuthService에서 설정한 authError 시그널 사용)
+          console.error('Login failed:', error);
+          this.isLoading.set(false);
+          this.errorMessage.set(this.authService.authError());
+        }
+      });
     } else {
       // 폼이 유효하지 않은 경우 모든 필드를 touched 상태로 변경하여 에러 메시지 표시
       this.markFormGroupTouched();
