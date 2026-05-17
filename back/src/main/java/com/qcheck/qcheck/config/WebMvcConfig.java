@@ -42,7 +42,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins)
                 .allowedMethods(allowedMethods.split(","))
-                .allowedHeaders(allowedHeaders.equals("*") ? "*" : allowedHeaders.split(","))
+                .allowedHeaders(allowedHeaders.split(","))
                 .allowCredentials(allowCredentials)
                 .maxAge(maxAge);
     }
