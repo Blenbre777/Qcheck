@@ -26,7 +26,10 @@ import { DefectService, DefectResponse, PagedDefectResponse } from '../services/
     <div class="defect-list-container">
       <div class="header">
         <h2>불량 관리</h2>
-        <a routerLink="/defects/add" class="btn btn-primary">불량 등록</a>
+        <div class="header-actions">
+          <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+          <a routerLink="/defects/add" class="btn btn-primary">불량 등록</a>
+        </div>
       </div>
 
       <!-- 에러 메시지 -->
@@ -170,6 +173,26 @@ import { DefectService, DefectResponse, PagedDefectResponse } from '../services/
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-back {
+      background-color: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      padding: 6px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+
+    .btn-back:hover {
+      background-color: #e9ecef;
     }
 
     .filter-section {
