@@ -25,7 +25,7 @@ export interface UpdateUnitRequest {
   providedIn: 'root'
 })
 export class UnitService {
-  private apiUrl = 'http://localhost:8081/api/master/units';
+  private apiUrl = '/api/master/units';
 
   constructor(private http: HttpClient) {}
 

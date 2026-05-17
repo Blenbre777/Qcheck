@@ -28,7 +28,7 @@ export interface UpdateDefectCodeRequest {
   providedIn: 'root'
 })
 export class DefectCodeService {
-  private apiUrl = 'http://localhost:8081/api/master/defect-codes';
+  private apiUrl = '/api/master/defect-codes';
 
   constructor(private http: HttpClient) {}
 

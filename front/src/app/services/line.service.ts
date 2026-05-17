@@ -25,7 +25,7 @@ export interface UpdateLineRequest {
   providedIn: 'root'
 })
 export class LineService {
-  private apiUrl = 'http://localhost:8081/api/master/lines';
+  private apiUrl = '/api/master/lines';
 
   constructor(private http: HttpClient) {}
 

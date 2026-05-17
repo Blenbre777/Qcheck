@@ -37,7 +37,7 @@ interface JwtPayload {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8081/api/auth';
+  private apiUrl = '/api/auth';
   private isBrowser: boolean;
 
   isAuthenticated = signal(false);
@@ -72,6 +72,10 @@ export class AuthService {
         this.clearAuthData();
       }
     }
+  }
+
+  register(companyNm: string, empId: string, empNm: string, empEmail: string, empPw: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, { companyNm, empId, empNm, empEmail, empPw });
   }
 
   login(email: string, password: string): Observable<LoginResponse> {

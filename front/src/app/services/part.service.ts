@@ -25,7 +25,7 @@ export interface UpdatePartRequest {
   providedIn: 'root'
 })
 export class PartService {
-  private apiUrl = 'http://localhost:8081/api/master/parts';
+  private apiUrl = '/api/master/parts';
 
   constructor(private http: HttpClient) {}
 
