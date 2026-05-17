@@ -38,40 +38,21 @@ import java.time.LocalDateTime;
 @Builder
 public class DefectResponse {
 
-    /**
-     * 불량 ID
-     */
     private Long defectSeq;
 
-    /**
-     * 불량 발생 일자
-     * 포맷: yyyy-MM-dd
-     */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate occurDate;
 
-    /**
-     * 공정 단위명
-     * 예: P1, P2 등
-     */
+    private Long unitSeq;
     private String unitNm;
 
-    /**
-     * 생산 라인명
-     * 예: Line A, Line B 등
-     */
+    private Long lineSeq;
     private String lineNm;
 
-    /**
-     * 부품명
-     * 예: PartA, CPU 등
-     */
+    private Long partSeq;
     private String partNm;
 
-    /**
-     * 불량 코드명
-     * 예: Scratch, Dent 등
-     */
+    private Long defectCodeSeq;
     private String codeNm;
 
     /**

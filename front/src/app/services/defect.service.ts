@@ -8,9 +8,13 @@ import { Observable } from 'rxjs';
 export interface DefectResponse {
   defectSeq: number;
   occurDate: string;       // yyyy-MM-dd
+  unitSeq?: number;
   unitNm: string;
+  lineSeq?: number;
   lineNm: string;
+  partSeq?: number;
   partNm: string;
+  defectCodeSeq?: number;
   codeNm: string;
   position: string;
   quantity: number;

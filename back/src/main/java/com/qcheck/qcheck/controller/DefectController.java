@@ -111,9 +111,8 @@ public class DefectController {
     @GetMapping("/{defect_seq}")
     public ResponseEntity<DefectResponse> getDefect(
         @PathVariable(name = "defect_seq") Long defectSeq,
-        Authentication auth
+        @RequestAttribute("companySeq") Long companySeq
     ) {
-        Long companySeq = extractCompanySeqFromToken(auth);
         DefectResponse response = defectService.getDefect(defectSeq, companySeq);
         log.info("Get defect: defectSeq={}, companySeq={}", defectSeq, companySeq);
         return ResponseEntity.ok(response);
@@ -145,9 +144,9 @@ public class DefectController {
     public ResponseEntity<DefectResponse> createDefect(
         @RequestPart(name = "defect") @Valid DefectCreateRequest request,
         @RequestPart(name = "file", required = false) MultipartFile file,
+        @RequestAttribute("companySeq") Long companySeq,
         Authentication auth
     ) {
-        Long companySeq = extractCompanySeqFromToken(auth);
         String empEmail = auth.getName();
 
         DefectResponse response = defectService.createDefect(request, file, companySeq, empEmail);
@@ -183,9 +182,9 @@ public class DefectController {
         @PathVariable(name = "defect_seq") Long defectSeq,
         @RequestPart(name = "defect") @Valid DefectUpdateRequest request,
         @RequestPart(name = "file", required = false) MultipartFile file,
+        @RequestAttribute("companySeq") Long companySeq,
         Authentication auth
     ) {
-        Long companySeq = extractCompanySeqFromToken(auth);
         String empEmail = auth.getName();
 
         DefectResponse response = defectService.updateDefect(defectSeq, request, file, companySeq, empEmail);
@@ -203,9 +202,8 @@ public class DefectController {
     @DeleteMapping("/{defect_seq}")
     public ResponseEntity<Void> deleteDefect(
         @PathVariable(name = "defect_seq") Long defectSeq,
-        Authentication auth
+        @RequestAttribute("companySeq") Long companySeq
     ) {
-        Long companySeq = extractCompanySeqFromToken(auth);
         defectService.deleteDefect(defectSeq, companySeq);
         log.info("Delete defect: defectSeq={}, companySeq={}", defectSeq, companySeq);
         return ResponseEntity.noContent().build();
@@ -221,9 +219,8 @@ public class DefectController {
     @GetMapping("/{defect_seq}/image")
     public ResponseEntity<Resource> getImage(
         @PathVariable(name = "defect_seq") Long defectSeq,
-        Authentication auth
+        @RequestAttribute("companySeq") Long companySeq
     ) {
-        Long companySeq = extractCompanySeqFromToken(auth);
 
         // 불량 조회
         DefectResponse defect = defectService.getDefect(defectSeq, companySeq);
@@ -241,28 +238,4 @@ public class DefectController {
             .body(resource);
     }
 
-    /**
-     * JWT 토큰에서 companySeq 추출
-     *
-     * 구현 방식:
-     * - Spring Security의 Authentication 객체에서 authorities 확인
-     * - "company_<companySeq>" 형식의 authority 검색
-     * - 없으면 예외 발생 (회사 정보가 없음)
-     *
-     * @param auth 인증 정보
-     * @return 회사 ID
-     * @throws RuntimeException 회사 정보를 찾을 수 없으면 예외 발생
-     */
-    private Long extractCompanySeqFromToken(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("인증 정보가 없습니다");
-        }
-
-        return auth.getAuthorities().stream()
-            .map(grantedAuthority -> grantedAuthority.getAuthority())
-            .filter(authority -> authority.startsWith("company_"))
-            .findFirst()
-            .map(authority -> Long.parseLong(authority.substring(8))) // "company_" 제거
-            .orElseThrow(() -> new RuntimeException("회사 정보를 찾을 수 없습니다"));
-    }
 }

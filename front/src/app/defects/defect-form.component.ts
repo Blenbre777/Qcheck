@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { DefectService, DefectResponse, DefectCreateRequest, DefectUpdateRequest } from '../services/defect.service';
 import { LineService, LineResponse } from '../services/line.service';
 import { PartService, PartResponse } from '../services/part.service';
@@ -411,134 +412,66 @@ export class DefectFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // 마스터 데이터 로드
-    this.loadMasterData();
-
-    // 라우트 파라미터 확인 (수정 모드 판단)
     this.route.paramMap.subscribe(params => {
       const seq = params.get('seq');
       if (seq) {
         this.isEditMode.set(true);
         this.defectSeq.set(Number(seq));
-        this.loadDefect(Number(seq));
+        this.loadAllData(Number(seq));
+      } else {
+        this.loadMasterData();
       }
     });
   }
 
-  /**
-   * 마스터 데이터 로드
-   */
   private loadMasterData(): void {
     this.isLoading.set(true);
-
-    Promise.all([
-      this.loadLines(),
-      this.loadParts(),
-      this.loadUnits(),
-      this.loadDefectCodes()
-    ]).finally(() => {
-      this.isLoading.set(false);
+    forkJoin({
+      lines: this.lineService.getLines(),
+      parts: this.partService.getParts(),
+      units: this.unitService.getUnits(),
+      defectCodes: this.defectCodeService.getDefectCodes()
+    }).subscribe({
+      next: ({ lines, parts, units, defectCodes }) => {
+        this.lines.set(lines);
+        this.parts.set(parts);
+        this.units.set(units);
+        this.defectCodes.set(defectCodes);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('마스터 데이터 로드 실패');
+        this.isLoading.set(false);
+      }
     });
   }
 
-  /**
-   * 라인 로드
-   */
-  private loadLines(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.lineService.getLines().subscribe({
-        next: (data) => {
-          this.lines.set(data);
-          resolve();
-        },
-        error: (err) => {
-          this.errorMessage.set('라인 로드 실패');
-          reject(err);
-        }
-      });
-    });
-  }
-
-  /**
-   * 부품 로드
-   */
-  private loadParts(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.partService.getParts().subscribe({
-        next: (data) => {
-          this.parts.set(data);
-          resolve();
-        },
-        error: (err) => {
-          this.errorMessage.set('부품 로드 실패');
-          reject(err);
-        }
-      });
-    });
-  }
-
-  /**
-   * 공정 단위 로드
-   */
-  private loadUnits(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.unitService.getUnits().subscribe({
-        next: (data) => {
-          this.units.set(data);
-          resolve();
-        },
-        error: (err) => {
-          this.errorMessage.set('공정 단위 로드 실패');
-          reject(err);
-        }
-      });
-    });
-  }
-
-  /**
-   * 불량 코드 로드
-   */
-  private loadDefectCodes(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.defectCodeService.getDefectCodes().subscribe({
-        next: (data) => {
-          this.defectCodes.set(data);
-          resolve();
-        },
-        error: (err) => {
-          this.errorMessage.set('불량 코드 로드 실패');
-          reject(err);
-        }
-      });
-    });
-  }
-
-  /**
-   * 불량 상세 조회 (수정 모드)
-   */
-  private loadDefect(seq: number): void {
+  private loadAllData(seq: number): void {
     this.isLoading.set(true);
-    this.defectService.getDefect(seq).subscribe({
-      next: (defect) => {
-        // 폼 값 설정
+    forkJoin({
+      lines: this.lineService.getLines(),
+      parts: this.partService.getParts(),
+      units: this.unitService.getUnits(),
+      defectCodes: this.defectCodeService.getDefectCodes(),
+      defect: this.defectService.getDefect(seq)
+    }).subscribe({
+      next: ({ lines, parts, units, defectCodes, defect }) => {
+        this.lines.set(lines);
+        this.parts.set(parts);
+        this.units.set(units);
+        this.defectCodes.set(defectCodes);
+
         this.form.patchValue({
           occurDate: defect.occurDate,
+          unitSeq: defect.unitSeq,
+          lineSeq: defect.lineSeq,
+          partSeq: defect.partSeq,
+          defectCodeSeq: defect.defectCodeSeq,
           quantity: defect.quantity,
           position: defect.position || '',
           remarks: defect.remarks || ''
         });
 
-        // 드롭다운 값 설정 (마스터 데이터 로드 후)
-        setTimeout(() => {
-          this.form.patchValue({
-            unitSeq: this.findIdByName(this.units(), defect.unitNm, 'unitNm'),
-            lineSeq: this.findIdByName(this.lines(), defect.lineNm, 'lineNm'),
-            partSeq: this.findIdByName(this.parts(), defect.partNm, 'partNm'),
-            defectCodeSeq: this.findIdByName(this.defectCodes(), defect.codeNm, 'codeNm')
-          });
-        }, 100);
-
-        // 이미지 URL 설정
         if (defect.hasImage) {
           this.existingImageUrl = this.defectService.getImageUrl(seq);
         }
@@ -546,23 +479,10 @@ export class DefectFormComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || '불량 조회 실패');
+        this.errorMessage.set(err.error?.message || '데이터 로드 실패');
         this.isLoading.set(false);
       }
     });
-  }
-
-  /**
-   * 이름으로 ID 찾기 (드롭다운 값 매핑용)
-   */
-  private findIdByName(items: any[], name: string, nameField: string): number | null {
-    if (!items || items.length === 0) return null;
-    const item = items.find(i => i[nameField] === name);
-    if (!item) return null;
-
-    // 첫 번째 Seq 필드 찾기
-    const seqKey = Object.keys(item).find(k => k.endsWith('Seq'));
-    return seqKey ? item[seqKey] : null;
   }
 
   /**
