@@ -44,7 +44,7 @@ public class Company {
      * 고객사 고유 식별자
      *
      * 자료형: Long
-     * 데이터베이스: BIGSERIAL (PostgreSQL 자동 증가)
+     * 데이터베이스: BIGSERIAL (PostgreSQL 자동 증가), 컬럼명: company_seq
      * 제약조건: PRIMARY KEY, NOT NULL
      *
      * JPA 설정:
@@ -54,8 +54,8 @@ public class Company {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "company_seq")
+    private Long companySeq;
 
     /**
      * 고객사명
@@ -107,7 +107,7 @@ public class Company {
     @Override
     public String toString() {
         return "Company{" +
-                "id=" + id +
+                "companySeq=" + companySeq +
                 ", name='" + name + '\'' +
                 ", status=" + status +
                 '}';
@@ -128,7 +128,7 @@ public class Company {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Company company = (Company) obj;
-        return id != null && id.equals(company.id);
+        return companySeq != null && companySeq.equals(company.companySeq);
     }
 
     /**
@@ -143,6 +143,6 @@ public class Company {
      */
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return companySeq != null ? companySeq.hashCode() : 0;
     }
 }

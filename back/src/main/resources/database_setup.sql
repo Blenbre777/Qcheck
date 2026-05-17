@@ -70,24 +70,30 @@ CREATE TABLE IF NOT EXISTS company (
     updated_ep  VARCHAR(50) DEFAULT NULL
 );
 
--- 고객사 (USER) 를 저장하는 메인 테이블 
+-- 고객사 (USER) 를 저장하는 메인 테이블
 CREATE TABLE IF NOT EXISTS emp (
     -- 기본키: 자동 증가 정수
-    emp_seq     BIGSERIAL PRIMARY KEY,    
+    emp_seq     BIGSERIAL PRIMARY KEY,
     -- 로그인 아이디: 중복 불가, 필수 입력
-    emp_id      VARCHAR(50) NOT NULL UNIQUE,    
+    emp_id      VARCHAR(50) NOT NULL UNIQUE,
     -- 로그인 비밀번호: 암호화 저장 전제
-    emp_pw      VARCHAR(255) NOT NULL,    
+    emp_pw      VARCHAR(255) NOT NULL,
     -- 사원 이름
-    emp_nm      VARCHAR(100) NOT NULL,    
+    emp_nm      VARCHAR(100) NOT NULL,
+    -- 소속 회사: 외래키, 멀티테넌트 격리 필수
+    company_seq BIGINT NOT NULL REFERENCES company(company_seq),
+    -- 사원 이메일: 중복 불가, JWT 토큰에 사용
+    emp_email   VARCHAR(255) NOT NULL UNIQUE,
+    -- 사원 권한: SUPER_ADMIN, COMPANY_ADMIN, USER (기본값: USER)
+    emp_role    VARCHAR(20) NOT NULL DEFAULT 'USER' CHECK (emp_role IN ('SUPER_ADMIN', 'COMPANY_ADMIN', 'USER')),
     -- 사용 여부 (Y/N)
-    use_yn      VARCHAR(2) NOT NULL DEFAULT 'Y',    
+    use_yn      VARCHAR(2) NOT NULL DEFAULT 'Y',
     -- 생성 시간: 자동 입력
-    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,    
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     -- 생성자: 기본값 SYSTEM
-    created_ep  VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',    -- 회원가입시 system 
+    created_ep  VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',    -- 회원가입시 system
     -- 수정 시간: 최초 NULL, 직접 업데이트 시 값 입력
-    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL,    
+    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     -- 수정자: 최초 NULL, 직접 업데이트 시 값 입력
     updated_ep  VARCHAR(50) DEFAULT NULL
 );
@@ -192,7 +198,7 @@ INSERT INTO emp (emp_id, emp_pw, emp_nm, use_yn, created_ep)
 VALUES ({사용하는 id}, {사용하는 pw}, '테스트계정', 'Y', 'SYSTEM'); 
 
 -- 예: '글로벌 시스템즈' 회사에 'test_user' 사용자를 오늘자로 소속 등록
--- HS:이거 오류날 수 있음 참고만 부탁 
+-- HS:이거 오류날 수 있음 참고만 부탁
 INSERT INTO company_emp_hist (company_seq, emp_seq, start_date, created_ep)
 SELECT  c.company_seq,
         e.emp_seq,
@@ -203,8 +209,163 @@ JOIN emp     e ON e.emp_id = 'test_user'         -- ← 사용하는 id
 WHERE c.name = '글로벌 시스템즈'                    -- ← 대상 회사명
 ON CONFLICT DO NOTHING;
 
+-- =====================================================
+-- PHASE 2-4: 신규 테이블 DDL (생산 라인, 부품, 공정, 불량 마스터, 불량 기록)
+-- =====================================================
 
--- -----------------------------------------------------
+-- 생산 라인 (LINE) 테이블
+CREATE TABLE IF NOT EXISTS line (
+    -- 기본키: 자동 증가 정수
+    line_seq    BIGSERIAL PRIMARY KEY,
+    -- 외래키: 회사 식별자 (멀티테넌트)
+    company_seq BIGINT NOT NULL REFERENCES company(company_seq) ON DELETE CASCADE,
+    -- 생산 라인명
+    line_nm     VARCHAR(100) NOT NULL,
+    -- 사용 여부 (Y/N)
+    use_yn      VARCHAR(2) NOT NULL DEFAULT 'Y',
+    -- 생성 시간
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- 생성자
+    created_ep  VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    -- 수정 시간
+    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- 수정자
+    updated_ep  VARCHAR(50) DEFAULT NULL,
+    -- 같은 회사 내에서 라인명 중복 방지
+    CONSTRAINT uq_line_company_name UNIQUE (company_seq, line_nm)
+);
+
+-- 부품/제품 (PART) 테이블
+CREATE TABLE IF NOT EXISTS part (
+    -- 기본키: 자동 증가 정수
+    part_seq    BIGSERIAL PRIMARY KEY,
+    -- 외래키: 회사 식별자 (멀티테넌트)
+    company_seq BIGINT NOT NULL REFERENCES company(company_seq) ON DELETE CASCADE,
+    -- 부품/제품명
+    part_nm     VARCHAR(100) NOT NULL,
+    -- 사용 여부 (Y/N)
+    use_yn      VARCHAR(2) NOT NULL DEFAULT 'Y',
+    -- 생성 시간
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- 생성자
+    created_ep  VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    -- 수정 시간
+    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- 수정자
+    updated_ep  VARCHAR(50) DEFAULT NULL,
+    -- 같은 회사 내에서 부품명 중복 방지
+    CONSTRAINT uq_part_company_name UNIQUE (company_seq, part_nm)
+);
+
+-- 공정 단위 (UNIT) 테이블
+CREATE TABLE IF NOT EXISTS unit (
+    -- 기본키: 자동 증가 정수
+    unit_seq    BIGSERIAL PRIMARY KEY,
+    -- 외래키: 회사 식별자 (멀티테넌트)
+    company_seq BIGINT NOT NULL REFERENCES company(company_seq) ON DELETE CASCADE,
+    -- 공정 단위명 (예: P1, P2, Assembly, Inspection)
+    unit_nm     VARCHAR(100) NOT NULL,
+    -- 사용 여부 (Y/N)
+    use_yn      VARCHAR(2) NOT NULL DEFAULT 'Y',
+    -- 생성 시간
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- 생성자
+    created_ep  VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    -- 수정 시간
+    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- 수정자
+    updated_ep  VARCHAR(50) DEFAULT NULL,
+    -- 같은 회사 내에서 공정명 중복 방지
+    CONSTRAINT uq_unit_company_name UNIQUE (company_seq, unit_nm)
+);
+
+-- 불량 코드 마스터 (DEFECT_CODE) 테이블
+CREATE TABLE IF NOT EXISTS defect_code (
+    -- 기본키: 자동 증가 정수
+    defect_code_seq BIGSERIAL PRIMARY KEY,
+    -- 외래키: 회사 식별자 (멀티테넌트)
+    company_seq     BIGINT NOT NULL REFERENCES company(company_seq) ON DELETE CASCADE,
+    -- 불량 코드명 (예: 색상, 흠집, 변형)
+    code_nm         VARCHAR(100) NOT NULL,
+    -- 불량 코드 설명
+    description     TEXT,
+    -- 사용 여부 (Y/N)
+    use_yn          VARCHAR(2) NOT NULL DEFAULT 'Y',
+    -- 생성 시간
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- 생성자
+    created_ep      VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    -- 수정 시간
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- 수정자
+    updated_ep      VARCHAR(50) DEFAULT NULL,
+    -- 같은 회사 내에서 불량 코드명 중복 방지
+    CONSTRAINT uq_defect_code_company_name UNIQUE (company_seq, code_nm)
+);
+
+-- 불량 기록 (DEFECT) 테이블
+CREATE TABLE IF NOT EXISTS defect (
+    -- 기본키: 자동 증가 정수
+    defect_seq      BIGSERIAL PRIMARY KEY,
+    -- 외래키: 회사 식별자 (멀티테넌트, 데이터 격리)
+    company_seq     BIGINT NOT NULL REFERENCES company(company_seq) ON DELETE CASCADE,
+    -- 외래키: 생산 라인
+    line_seq        BIGINT REFERENCES line(line_seq) ON DELETE SET NULL,
+    -- 외래키: 부품/제품
+    part_seq        BIGINT REFERENCES part(part_seq) ON DELETE SET NULL,
+    -- 외래키: 공정 단위
+    unit_seq        BIGINT REFERENCES unit(unit_seq) ON DELETE SET NULL,
+    -- 외래키: 불량 코드 마스터
+    defect_code_seq BIGINT NOT NULL REFERENCES defect_code(defect_code_seq) ON DELETE RESTRICT,
+    -- 불량 수량 (기본값 1)
+    quantity        INTEGER DEFAULT 1,
+    -- 불량 위치 (예: 좌상단, 중앙 등)
+    position        VARCHAR(100),
+    -- 비고/상세 설명
+    remarks         TEXT,
+    -- 불량 발생 날짜
+    occur_date      DATE NOT NULL,
+    -- 불량 이미지 저장 경로 (로컬 파일 시스템)
+    image_path      VARCHAR(500),
+    -- 생성 시간
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- 생성자
+    created_ep      VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
+    -- 수정 시간
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- 수정자
+    updated_ep      VARCHAR(50) DEFAULT NULL
+);
+
+-- 불량 관련 인덱스
+-- 회사별, 발생 날짜별 조회 성능 향상
+CREATE INDEX IF NOT EXISTS idx_defect_company_date ON defect(company_seq, occur_date DESC);
+
+-- 회사별, 라인별, 날짜별 조회 성능 향상
+CREATE INDEX IF NOT EXISTS idx_defect_line ON defect(company_seq, line_seq, occur_date DESC);
+
+-- 회사별, 불량 코드별, 날짜별 조회 성능 향상
+CREATE INDEX IF NOT EXISTS idx_defect_code ON defect(company_seq, defect_code_seq, occur_date DESC);
+
+-- 라인, 부품, 공정 테이블 인덱스
+CREATE INDEX IF NOT EXISTS idx_line_company ON line(company_seq);
+CREATE INDEX IF NOT EXISTS idx_part_company ON part(company_seq);
+CREATE INDEX IF NOT EXISTS idx_unit_company ON unit(company_seq);
+CREATE INDEX IF NOT EXISTS idx_defect_code_company ON defect_code(company_seq);
+
+-- 테이블 주석 추가
+COMMENT ON TABLE line IS '생산 라인 마스터';
+COMMENT ON TABLE part IS '부품/제품 마스터';
+COMMENT ON TABLE unit IS '공정 단위 마스터';
+COMMENT ON TABLE defect_code IS '불량 코드 마스터';
+COMMENT ON TABLE defect IS '불량 기록';
+
+-- 컬럼 주석 추가
+COMMENT ON COLUMN defect.company_seq IS '데이터 격리: 같은 회사의 데이터만 조회 가능';
+COMMENT ON COLUMN defect.occur_date IS '불량 발생 날짜: 대시보드 집계 기준';
+COMMENT ON COLUMN defect.image_path IS '로컬 파일 시스템 경로: /files/defects/{company_seq}/{yyyy-MM}/';
+
+-- =====================================================
 -- 10. 권한 설정 (필요시)
 -- -----------------------------------------------------
 -- 애플리케이션 전용 사용자 생성 및 권한 부여
