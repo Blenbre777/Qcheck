@@ -538,7 +538,7 @@ export class DefectFormComponent implements OnInit {
       occurDate: this.form.value.occurDate
     };
 
-    formData.append('defect', JSON.stringify(defectData));
+    formData.append('defect', new Blob([JSON.stringify(defectData)], { type: 'application/json' }));
 
     // 파일 (선택사항)
     if (this.selectedFile()) {
