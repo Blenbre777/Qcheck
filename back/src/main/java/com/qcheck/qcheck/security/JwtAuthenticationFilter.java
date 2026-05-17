@@ -50,11 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 2. 토큰 유효성 검증 및 Authentication 설정
             if (token != null && jwtTokenProvider.validateToken(token)) {
-                // 3. 토큰에서 empSeq 추출
+                // 3. 토큰에서 empSeq, companySeq, email 추출
                 Long empSeq = jwtTokenProvider.getEmpSeqFromToken(token);
+                Long companySeq = jwtTokenProvider.getCompanySeqFromToken(token);
                 String email = jwtTokenProvider.getEmailFromToken(token);
 
-                if (empSeq != null && email != null) {
+                if (empSeq != null && companySeq != null && email != null) {
                     // 4. UserDetailsService로 UserDetails 조회
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
@@ -68,7 +69,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    log.debug("JWT authentication successful for user: {}", email);
+                    // 6. 요청 속성에 companySeq 저장 (컨트롤러에서 접근 가능)
+                    request.setAttribute("companySeq", companySeq);
+
+                    log.debug("JWT authentication successful for user: {}, companySeq: {}", email, companySeq);
                 }
             }
         } catch (Exception e) {
