@@ -1,7 +1,9 @@
 package com.qcheck.qcheck.controller;
 
 import com.qcheck.qcheck.dto.request.LoginRequest;
+import com.qcheck.qcheck.dto.request.RegisterRequest;
 import com.qcheck.qcheck.dto.response.LoginResponse;
+import com.qcheck.qcheck.dto.response.RegisterResponse;
 import com.qcheck.qcheck.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +61,13 @@ public class AuthController {
      * @param loginRequest 로그인 요청 (이메일 + 비밀번호)
      * @return LoginResponse
      */
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        log.info("Register attempt for email: {}", request.getEmpEmail());
+        RegisterResponse response = authService.register(request);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         log.info("Login attempt for email: {}", loginRequest.getEmail());

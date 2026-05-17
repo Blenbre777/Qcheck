@@ -1,17 +1,20 @@
 package com.qcheck.qcheck.service;
 
 import com.qcheck.qcheck.dto.request.LoginRequest;
+import com.qcheck.qcheck.dto.request.RegisterRequest;
 import com.qcheck.qcheck.dto.response.LoginResponse;
+import com.qcheck.qcheck.dto.response.RegisterResponse;
+import com.qcheck.qcheck.entity.Company;
+import com.qcheck.qcheck.entity.CompanyStatus;
 import com.qcheck.qcheck.entity.Emp;
+import com.qcheck.qcheck.entity.EmpRole;
+import com.qcheck.qcheck.repository.CompanyRepository;
 import com.qcheck.qcheck.repository.EmpRepository;
 import com.qcheck.qcheck.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +39,9 @@ public class AuthService {
 
     @Autowired
     private EmpRepository empRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -110,6 +116,42 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(86400) // 1일 (초 단위)
                 .empInfo(empInfo)
+                .build();
+    }
+
+    /**
+     * 신규 회원가입 (회사 + 관리자 계정 동시 생성)
+     */
+    @Transactional
+    public RegisterResponse register(RegisterRequest request) {
+        if (empRepository.findByEmpEmail(request.getEmpEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+        if (empRepository.findByEmpId(request.getEmpId()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 사원 ID입니다.");
+        }
+
+        Company company = companyRepository.save(Company.builder()
+                .name(request.getCompanyNm())
+                .status(CompanyStatus.ACTIVE)
+                .build());
+
+        Emp emp = empRepository.save(Emp.builder()
+                .empId(request.getEmpId())
+                .empPw(passwordEncoder.encode(request.getEmpPw()))
+                .empNm(request.getEmpNm())
+                .empEmail(request.getEmpEmail())
+                .companySeq(company.getCompanySeq())
+                .empRole(EmpRole.COMPANY_ADMIN)
+                .useYn("Y")
+                .build());
+
+        log.info("New company registered: {} (seq={}), admin: {}", company.getName(), company.getCompanySeq(), emp.getEmpEmail());
+
+        return RegisterResponse.builder()
+                .message("회원가입이 완료되었습니다.")
+                .companySeq(company.getCompanySeq())
+                .empSeq(emp.getEmpSeq())
                 .build();
     }
 
