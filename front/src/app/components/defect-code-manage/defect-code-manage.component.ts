@@ -86,7 +86,7 @@ import { DefectCodeService, DefectCodeResponse, CreateDefectCodeRequest, UpdateD
         </thead>
         <tbody>
           <tr *ngFor="let code of defectCodes()">
-            <td>{{ code.codeNm }}</td>
+            <td>{{ code.defectCodeNm }}</td>
             <td>{{ code.description || '-' }}</td>
             <td>{{ code.useYn === 'Y' ? '사용' : '미사용' }}</td>
             <td>{{ code.createdEp }}</td>
@@ -313,7 +313,7 @@ export class DefectCodeManageComponent implements OnInit {
   edit(code: DefectCodeResponse) {
     this.editingSeq.set(code.defectCodeSeq);
     this.form.patchValue({
-      codeNm: code.codeNm,
+      codeNm: code.defectCodeNm,
       description: code.description,
       useYn: code.useYn
     });
@@ -326,7 +326,7 @@ export class DefectCodeManageComponent implements OnInit {
   }
 
   delete(code: DefectCodeResponse) {
-    if (confirm(`'${code.codeNm}' 불량 코드를 삭제하시겠습니까?`)) {
+    if (confirm(`'${code.defectCodeNm}' 불량 코드를 삭제하시겠습니까?`)) {
       this.loading.set(true);
       this.defectCodeService.deleteDefectCode(code.defectCodeSeq).subscribe({
         next: () => {

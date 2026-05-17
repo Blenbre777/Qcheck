@@ -12,7 +12,7 @@ import { LineService, LineResponse, CreateLineRequest, UpdateLineRequest } from 
       <h2>라인 관리</h2>
 
       <!-- 에러 메시지 -->
-      <div *ngIf="error(); class="alert alert-danger">
+      <div *ngIf="error()" class="alert alert-danger">
         {{ error() }}
       </div>
 

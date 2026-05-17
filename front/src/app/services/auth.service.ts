@@ -219,9 +219,9 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http.post(`${this.apiUrl}/refresh`, { refreshToken })
+    return this.http.post<any>(`${this.apiUrl}/refresh`, { refreshToken })
       .pipe(
-        tap((response) => {
+        tap((response: any) => {
           localStorage.setItem('accessToken', response.accessToken);
           this.scheduleTokenRefresh();
         }),

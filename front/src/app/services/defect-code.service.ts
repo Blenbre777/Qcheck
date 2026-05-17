@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface DefectCodeResponse {
   defectCodeSeq: number;
-  codeNm: string;
+  defectCodeNm: string;
   description?: string;
   useYn: string;
   createdAt: string;

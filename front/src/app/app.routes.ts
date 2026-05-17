@@ -40,11 +40,11 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./login.component').then(c => c.LoginComponent)
   },
-  {
-    path: 'dashboard',
-    canActivate: [AuthGuard],
-    loadComponent: () => import('./dashboard.component').then(c => c.DashboardComponent)
-  },
+  // {
+  //   path: 'dashboard',
+  //   canActivate: [AuthGuard],
+  //   loadComponent: () => import('./dashboard/dashboard.component').then(c => c.DashboardComponent)
+  // },
   {
     path: 'master',
     canActivate: [AuthGuard],
@@ -72,12 +72,16 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'list',
-        loadComponent: () => import('./defects/defects-list.component').then(c => c.DefectsListComponent)
+        path: '',
+        loadComponent: () => import('./defects/defect-list.component').then(c => c.DefectListComponent)
       },
       {
-        path: 'register',
-        loadComponent: () => import('./defects/defects-register.component').then(c => c.DefectsRegisterComponent)
+        path: 'add',
+        loadComponent: () => import('./defects/defect-form.component').then(c => c.DefectFormComponent)
+      },
+      {
+        path: ':seq/edit',
+        loadComponent: () => import('./defects/defect-form.component').then(c => c.DefectFormComponent)
       }
     ]
   }
