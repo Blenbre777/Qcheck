@@ -41,6 +41,10 @@ export const routes: Routes = [
     loadComponent: () => import('./login.component').then(c => c.LoginComponent)
   },
   {
+    path: 'register',
+    loadComponent: () => import('./register/register.component').then(c => c.RegisterComponent)
+  },
+  {
     path: 'dashboard',
     canActivate: [AuthGuard],
     loadComponent: () => import('./dashboard/dashboard.component').then(c => c.DashboardComponent)
