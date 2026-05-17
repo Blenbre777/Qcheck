@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { DashboardService, DashboardResponse, DefectCountByLine, DefectCountByCode } from '../services/dashboard.service';
 
 /**
@@ -30,12 +31,43 @@ import { DashboardService, DashboardResponse, DefectCountByLine, DefectCountByCo
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="dashboard-container">
       <!-- 헤더 -->
       <div class="header">
         <h2>대시보드</h2>
+      </div>
+
+      <!-- 빠른 메뉴 -->
+      <div class="quick-menu">
+        <h3 class="quick-menu-title">빠른 메뉴</h3>
+        <div class="quick-menu-grid">
+          <a routerLink="/defects/add" class="quick-card quick-card-primary">
+            <span class="quick-card-icon">＋</span>
+            <span class="quick-card-label">불량 등록</span>
+          </a>
+          <a routerLink="/defects" class="quick-card quick-card-secondary">
+            <span class="quick-card-icon">☰</span>
+            <span class="quick-card-label">불량 목록</span>
+          </a>
+          <a routerLink="/master/lines" class="quick-card quick-card-master">
+            <span class="quick-card-icon">≡</span>
+            <span class="quick-card-label">라인 관리</span>
+          </a>
+          <a routerLink="/master/parts" class="quick-card quick-card-master">
+            <span class="quick-card-icon">⧉</span>
+            <span class="quick-card-label">파트 관리</span>
+          </a>
+          <a routerLink="/master/units" class="quick-card quick-card-master">
+            <span class="quick-card-icon">◫</span>
+            <span class="quick-card-label">단위 관리</span>
+          </a>
+          <a routerLink="/master/defect-codes" class="quick-card quick-card-master">
+            <span class="quick-card-icon">⊞</span>
+            <span class="quick-card-label">불량 코드 관리</span>
+          </a>
+        </div>
       </div>
 
       <!-- 에러 메시지 -->
@@ -358,6 +390,86 @@ import { DashboardService, DashboardResponse, DefectCountByLine, DefectCountByCo
       background: white;
       border-radius: 4px;
       border: 1px solid #e0e0e0;
+    }
+
+    .quick-menu {
+      margin-bottom: 30px;
+    }
+
+    .quick-menu-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .quick-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .quick-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9em;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      cursor: pointer;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .quick-card-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .quick-card-label {
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .quick-card-primary {
+      background-color: #007bff;
+      color: white;
+      border: 1px solid #0069d9;
+    }
+
+    .quick-card-primary:hover {
+      background-color: #0069d9;
+      color: white;
+    }
+
+    .quick-card-secondary {
+      background-color: #6c757d;
+      color: white;
+      border: 1px solid #5a6268;
+    }
+
+    .quick-card-secondary:hover {
+      background-color: #5a6268;
+      color: white;
+    }
+
+    .quick-card-master {
+      background-color: white;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+
+    .quick-card-master:hover {
+      background-color: #f8f9fa;
+      color: #212529;
     }
   `]
 })
