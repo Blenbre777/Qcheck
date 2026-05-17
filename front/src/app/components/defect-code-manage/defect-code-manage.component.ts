@@ -1,15 +1,19 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DefectCodeService, DefectCodeResponse, CreateDefectCodeRequest, UpdateDefectCodeRequest } from '../../services/defect-code.service';
 
 @Component({
   selector: 'app-defect-code-manage',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="defect-code-manage-container">
-      <h2>불량 코드 관리</h2>
+      <div class="page-header">
+        <h2>불량 코드 관리</h2>
+        <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+      </div>
 
       <!-- 에러 메시지 -->
       <div *ngIf="error()" class="alert alert-danger">
@@ -86,7 +90,7 @@ import { DefectCodeService, DefectCodeResponse, CreateDefectCodeRequest, UpdateD
         </thead>
         <tbody>
           <tr *ngFor="let code of defectCodes()">
-            <td>{{ code.defectCodeNm }}</td>
+            <td>{{ code.codeNm }}</td>
             <td>{{ code.description || '-' }}</td>
             <td>{{ code.useYn === 'Y' ? '사용' : '미사용' }}</td>
             <td>{{ code.createdEp }}</td>
@@ -119,8 +123,29 @@ import { DefectCodeService, DefectCodeResponse, CreateDefectCodeRequest, UpdateD
       padding: 20px;
     }
 
-    h2 {
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 20px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+    }
+
+    .btn-back {
+      background-color: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      padding: 6px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+
+    .btn-back:hover {
+      background-color: #e9ecef;
     }
 
     .form-section {
@@ -313,7 +338,7 @@ export class DefectCodeManageComponent implements OnInit {
   edit(code: DefectCodeResponse) {
     this.editingSeq.set(code.defectCodeSeq);
     this.form.patchValue({
-      codeNm: code.defectCodeNm,
+      codeNm: code.codeNm,
       description: code.description,
       useYn: code.useYn
     });
@@ -326,7 +351,7 @@ export class DefectCodeManageComponent implements OnInit {
   }
 
   delete(code: DefectCodeResponse) {
-    if (confirm(`'${code.defectCodeNm}' 불량 코드를 삭제하시겠습니까?`)) {
+    if (confirm(`'${code.codeNm}' 불량 코드를 삭제하시겠습니까?`)) {
       this.loading.set(true);
       this.defectCodeService.deleteDefectCode(code.defectCodeSeq).subscribe({
         next: () => {

@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { DefectService, DefectResponse, DefectCreateRequest, DefectUpdateRequest } from '../services/defect.service';
 import { LineService, LineResponse } from '../services/line.service';
 import { PartService, PartResponse } from '../services/part.service';
@@ -26,10 +26,13 @@ import { DefectCodeService, DefectCodeResponse } from '../services/defect-code.s
 @Component({
   selector: 'app-defect-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="defect-form-container">
-      <h2>{{ isEditMode() ? '불량 수정' : '불량 등록' }}</h2>
+      <div class="page-header">
+        <h2>{{ isEditMode() ? '불량 수정' : '불량 등록' }}</h2>
+        <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+      </div>
 
       <!-- 에러 메시지 -->
       <div *ngIf="errorMessage()" class="alert alert-danger">
@@ -102,7 +105,7 @@ import { DefectCodeService, DefectCodeResponse } from '../services/defect-code.s
           <select id="defectCodeSeq" formControlName="defectCodeSeq" class="form-control">
             <option value="">불량 코드를 선택하세요</option>
             <option *ngFor="let code of defectCodes()" [value]="code.defectCodeSeq">
-              {{ code.defectCodeNm }}
+              {{ code.codeNm }}
             </option>
           </select>
           <div *ngIf="form.get('defectCodeSeq')?.invalid && form.get('defectCodeSeq')?.touched" class="text-danger">
@@ -204,6 +207,31 @@ import { DefectCodeService, DefectCodeResponse } from '../services/defect-code.s
       padding: 20px;
       max-width: 600px;
       margin: 0 auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+    }
+
+    .btn-back {
+      background-color: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      padding: 6px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+
+    .btn-back:hover {
+      background-color: #e9ecef;
     }
 
     .form-section {
@@ -506,7 +534,7 @@ export class DefectFormComponent implements OnInit {
             unitSeq: this.findIdByName(this.units(), defect.unitNm, 'unitNm'),
             lineSeq: this.findIdByName(this.lines(), defect.lineNm, 'lineNm'),
             partSeq: this.findIdByName(this.parts(), defect.partNm, 'partNm'),
-            defectCodeSeq: this.findIdByName(this.defectCodes(), defect.codeNm, 'defectCodeNm')
+            defectCodeSeq: this.findIdByName(this.defectCodes(), defect.codeNm, 'codeNm')
           });
         }, 100);
 

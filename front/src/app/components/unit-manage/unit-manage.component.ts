@@ -1,15 +1,19 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { UnitService, UnitResponse, CreateUnitRequest, UpdateUnitRequest } from '../../services/unit.service';
 
 @Component({
   selector: 'app-unit-manage',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="unit-manage-container">
-      <h2>공정 단위 관리</h2>
+      <div class="page-header">
+        <h2>공정 단위 관리</h2>
+        <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+      </div>
 
       <!-- 에러 메시지 -->
       <div *ngIf="error()" class="alert alert-danger">
@@ -106,8 +110,29 @@ import { UnitService, UnitResponse, CreateUnitRequest, UpdateUnitRequest } from 
       padding: 20px;
     }
 
-    h2 {
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 20px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+    }
+
+    .btn-back {
+      background-color: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      padding: 6px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+
+    .btn-back:hover {
+      background-color: #e9ecef;
     }
 
     .form-section {
