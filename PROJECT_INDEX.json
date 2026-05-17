@@ -1,0 +1,180 @@
+{
+  "project": {
+    "name": "Qcheck",
+    "description": "품질 SaaS 사이드 프로젝트 (Quality Management SaaS Side Project)",
+    "generated": "2026-05-17",
+    "repository": "Blenbre777/Qcheck",
+    "branch": "main"
+  },
+  "structure": {
+    "backend": {
+      "root": "back/",
+      "framework": "Spring Boot",
+      "version": "3.4.10",
+      "language": "Java 17",
+      "buildTool": "Maven",
+      "entryPoint": "back/src/main/java/com/qcheck/qcheck/QcheckApplication.java",
+      "port": 8081,
+      "packageBase": "com.qcheck.qcheck"
+    },
+    "frontend": {
+      "root": "front/",
+      "framework": "Angular",
+      "version": "20.3.0",
+      "language": "TypeScript 5.9",
+      "entryPoint": "front/src/main.ts",
+      "ssrEntryPoint": "front/src/server.ts",
+      "defaultPort": 4200
+    },
+  },
+  "backend": {
+    "layers": {
+      "controller": [
+        {
+          "file": "back/src/main/java/com/qcheck/qcheck/controller/CompanyController.java",
+          "class": "CompanyController",
+          "baseUrl": "/api/companies",
+          "endpoints": [
+            "GET /all", "GET /{id}", "GET /status/{status}", "GET /active",
+            "GET /search", "GET /search-ignore-case", "GET /name",
+            "GET /exists", "GET /count", "GET /count/status/{status}",
+            "GET /sorted", "GET /sorted/status/{status}", "GET /help"
+          ]
+        }
+      ],
+      "entity": [
+        {
+          "file": "back/src/main/java/com/qcheck/qcheck/entity/Company.java",
+          "class": "Company",
+          "table": "company",
+          "fields": ["id (Long, PK)", "name (String)", "status (CompanyStatus)"]
+        },
+        {
+          "file": "back/src/main/java/com/qcheck/qcheck/entity/CompanyStatus.java",
+          "type": "enum",
+          "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+        }
+      ],
+      "repository": [
+        {
+          "file": "back/src/main/java/com/qcheck/qcheck/repository/CompanyRepository.java",
+          "interface": "CompanyRepository",
+          "extends": "JpaRepository<Company, Long>",
+          "customMethods": [
+            "findByStatus", "findByName", "findByNameContaining", "findByStatusNot",
+            "findByNameContainingAndStatus", "findAllByOrderByNameAsc",
+            "findByStatusOrderByNameAsc", "countByStatus", "countByNameContaining",
+            "existsByName", "findActiveCompanies (JPQL)", "findByNameIgnoreCase (JPQL)",
+            "countActiveCompaniesNative (native SQL)"
+          ]
+        }
+      ],
+      "service": [
+        {
+          "file": "back/src/main/java/com/qcheck/qcheck/service/DatabaseConnectionService.java",
+          "class": "DatabaseConnectionService",
+          "purpose": "Runs PostgreSQL health check on ApplicationReadyEvent; logs DB version and connection status"
+        }
+      ]
+    },
+    "config": {
+      "file": "back/src/main/resources/application.properties",
+      "database": {
+        "type": "PostgreSQL",
+        "host": "localhost",
+        "port": 5432,
+        "name": "qcheck",
+        "username": "postgres"
+      },
+      "jpa": {
+        "ddlAuto": "update",
+        "showSql": true,
+        "dialect": "PostgreSQLDialect"
+      }
+    },
+    "dependencies": [
+      "spring-boot-starter-web",
+      "spring-boot-starter-data-jpa",
+      "spring-boot-starter-validation",
+      "spring-boot-starter-actuator",
+      "postgresql (runtime)",
+      "lombok"
+    ],
+    "tests": [
+      "back/src/test/java/com/qcheck/qcheck/QcheckApplicationTests.java"
+    ]
+  },
+  "database": {
+    "engine": "PostgreSQL 17",
+    "setupScript": "back/src/main/resources/database_setup.sql",
+    "tables": [
+      {
+        "name": "company",
+        "primaryKey": "company_seq (BIGSERIAL)",
+        "columns": ["name VARCHAR(100)", "status VARCHAR(20)", "created_at", "created_ep", "updated_at", "updated_ep"],
+        "indexes": ["idx_company_name", "idx_company_status"],
+        "status": "active"
+      },
+      {
+        "name": "emp",
+        "primaryKey": "emp_seq (BIGSERIAL)",
+        "columns": ["emp_id VARCHAR(50) UNIQUE", "emp_pw VARCHAR(255)", "emp_nm VARCHAR(100)", "use_yn VARCHAR(2)", "created_at", "created_ep", "updated_at", "updated_ep"],
+        "status": "active"
+      },
+      {
+        "name": "company_emp_hist",
+        "primaryKey": "hist_seq (BIGSERIAL)",
+        "foreignKeys": ["company_seq → company", "emp_seq → emp"],
+        "columns": ["start_date DATE", "end_date DATE", "created_at", "created_ep", "updated_at", "updated_ep"],
+        "status": "defined but not yet in use"
+      }
+    ]
+  },
+  "frontend": {
+    "architecture": "Standalone components with SSR",
+    "routes": [
+      { "path": "", "redirectTo": "/login" },
+      { "path": "login", "component": "LoginComponent", "loading": "lazy" }
+    ],
+    "components": [
+      {
+        "file": "front/src/app/app.ts",
+        "selector": "app-root",
+        "purpose": "Root component — hosts router-outlet"
+      },
+      {
+        "file": "front/src/app/login.component.ts",
+        "selector": "app-login",
+        "purpose": "Login page with reactive form (email + password), signal-based loading/error state",
+        "status": "UI complete; API integration TODO"
+      }
+    ],
+    "dependencies": {
+      "runtime": ["@angular/core ^20.3.0", "@angular/ssr ^20.3.2", "@angular/forms", "@angular/router", "express ^5.1.0", "rxjs ~7.8.0"],
+      "dev": ["@angular/cli ^20.3.2", "karma", "jasmine"]
+    },
+    "scripts": {
+      "start": "ng serve",
+      "build": "ng build",
+      "test": "ng test",
+      "ssr": "node dist/front/server/server.mjs"
+    },
+    "tests": [
+      "front/src/app/app.spec.ts"
+    ]
+  },
+  "knownIssues": [
+    {
+      "area": "JPA / DB column mismatch",
+      "detail": "company table PK is 'company_seq' in SQL but Company entity maps field as 'id' — runtime behaviour depends on DDL auto-update"
+    },
+    {
+      "area": "Login API",
+      "detail": "LoginComponent.onSubmit uses setTimeout simulation; no actual HTTP call to backend"
+    },
+    {
+      "area": "company_emp_hist",
+      "detail": "Table exists in DB schema but has no JPA entity or repository; SQL comments mark it as not yet active"
+    }
+  ]
+}
