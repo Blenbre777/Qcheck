@@ -32,7 +32,10 @@ import { DefectCodeService, DefectCodeResponse } from '../services/defect-code.s
     <div class="defect-form-container">
       <div class="page-header">
         <h2>{{ isEditMode() ? '불량 수정' : '불량 등록' }}</h2>
-        <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+        <div class="header-actions">
+          <a routerLink="/dashboard" class="btn btn-back">← 대시보드</a>
+          <a routerLink="/defects" class="btn btn-back">← 불량 목록</a>
+        </div>
       </div>
 
       <!-- 에러 메시지 -->
@@ -219,6 +222,12 @@ import { DefectCodeService, DefectCodeResponse } from '../services/defect-code.s
 
     .page-header h2 {
       margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
 
     .btn-back {
